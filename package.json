@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "@nuxt/ui": "^3.0.0",
+    "@types/formidable": "^3.4.5",
     "@types/pg": "^8.11.11",
+    "formidable": "^3.5.2",
+    "minio": "^8.0.5",
     "nuxt": "^3.16.0",
     "pg": "^8.14.0",
     "tailwindcss": "^4.0.14",
