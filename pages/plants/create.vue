@@ -1,7 +1,16 @@
 <template>
   <section>
-    <p class="font-bold mb-8">Add a plant</p>
-    <form @submit.prevent="addPlant" class="bg-gray-50 p-8 rounded-xl flex flex-col gap-4">
+    <div class="flex gap-1 items-center mb-4">
+      <NuxtLink to="/">
+        <Icon name="heroicons-solid:home" />
+      </NuxtLink>
+      <Icon name="heroicons:chevron-right" />
+      <NuxtLink to="/plants"><p class="font-bold">Plants</p></NuxtLink>
+      <Icon name="heroicons:chevron-right" />
+      <p class="font-bold">Add a plant</p>
+    </div>
+
+    <form @submit.prevent="addPlant" class="bg-white shadow-xl p-8 rounded-xl flex flex-col gap-4">
       <div class="flex flex-col gap-1">
         <BaseLabel text="Name" />
         <UInput v-model="name" />

@@ -1,5 +1,5 @@
 <template>
-  <label class="text-sm text-slate-500" :for="props.for">{{ props.text }}</label>
+  <label class="text-sm font-semibold text-slate-500" :for="props.for">{{ props.text }}</label>
 </template>
 
 <script setup lang="ts">
