@@ -33,7 +33,7 @@
             <div v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
                  class="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div v-for="photo in plant.data[0].photos" :key="photo.id" class="relative group aspect-square">
-                <img :src="photo.url" :alt="`Photo of ${plant.data[0].name}`"
+                <NuxtImg :src="photo.url" :alt="`Photo of ${plant.data[0].name}`"
                      class="w-full h-full object-cover rounded-lg shadow-md"/>
                 <div
                     class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
@@ -79,7 +79,7 @@
             </template>
           </UInput>
           <div v-if="previewUrl" class="mt-2">
-            <img :src="previewUrl" alt="Preview" class="w-full aspect-video object-cover rounded-lg"/>
+            <NuxtImg :src="previewUrl" alt="Preview" class="w-full aspect-video object-cover rounded-lg"/>
           </div>
         </div>
         <template #footer>

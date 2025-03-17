@@ -15,7 +15,7 @@
         <template #image>
           <!-- Plant Thumbnail -->
           <div v-if="plant.thumbnail" class="w-full aspect-square overflow-hidden">
-            <img :src="plant.thumbnail.url" :alt="`Photo of ${plant.name}`" class="w-full h-full object-cover" />
+            <NuxtImg :src="plant.thumbnail.url" :alt="`Photo of ${plant.name}`" class="w-full h-full object-cover" />
           </div>
           <div v-else class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
             <Icon name="heroicons:photo" class="w-8 h-8 text-gray-400" />

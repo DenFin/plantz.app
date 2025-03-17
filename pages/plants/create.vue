@@ -33,7 +33,7 @@
           @input="handleFileChange"
         />
         <div v-if="previewUrl" class="mt-2">
-          <img :src="previewUrl" alt="Preview" class="w-32 h-32 object-cover rounded-lg" />
+          <NuxtImg :src="previewUrl" alt="Preview" class="w-32 h-32 object-cover rounded-lg" />
         </div>
       </div>
       <UButton type="submit" :loading="isSubmitting" class="self-start">
