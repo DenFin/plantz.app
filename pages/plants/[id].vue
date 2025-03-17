@@ -1,9 +1,8 @@
 <template>
   <div  v-if="plant && plant.data && plant.data[0]" class="flex flex-col gap-8">
-    <div><pre>{{ showUploadModal}}</pre></div>
     <section id="breadcrumbs">
-      <div class="flex justify-between">
-        <div class="flex gap-1  items-center mb-8">
+      <div class="flex justify-between items-center">
+        <div class="flex gap-1  items-center">
           <NuxtLink to="/">
             <Icon name="heroicons-solid:home"/>
           </NuxtLink>
@@ -14,11 +13,14 @@
           <Icon name="heroicons:chevron-right"/>
           <p class="font-bold">{{ plant.data[0].name }}</p>
         </div>
+        <div class="bg-emerald-700 flex p-2 rounded-lg cursor-pointer hover:bg-emerald-600 transition-colors duration-200">
+          <UIcon class="bg-emerald-100 w-5 h-5" name="i-heroicons:ellipsis-vertical" />
+        </div>
       </div>
     </section>
     <section>
       <div class="flex flex-col lg:flex-row gap-8">
-        <BaseCard class="basis-1/2">
+        <BaseCard class="self-start w-full lg:basis-1/2">
           <h1 class="text-3xl font-bold mb-8">{{ plant.data[0].name }}</h1>
           <div class="flex flex-col gap-2"><p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
             <USeparator/>
@@ -26,14 +28,34 @@
             <USeparator/>
             <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p></div>
         </BaseCard>
-        <div class="basis-1/2">
+        <div class="basis-full lg:basis-1/2">
           <!-- Photos Section -->
           <div class="space-y-4 mb-8">
             <!-- Photos Grid -->
             <div v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
-                 class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                 class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div class="bg-emerald-200 hover:bg-emerald-300 transition-colors aspect-square rounded-lg overflow-hidden p-2 cursor-pointer relative">
+                <div  class="aspect-square border-1 border-dashed rounded-lg flex items-center justify-center">
+                  <div v-if="!showUploadButton"><input @input="handleFileChange" accept="image/*" type="file"
+                                                       class="opacity-0 absolute top-0 right-0 bottom-0 left-0 z-20 cursor-pointer">
+                    <div>
+                      <div class="flex items-center justify-center flex-col">
+                        <div>
+                          <UIcon name="i-lucide-camera" class="size-5"/>
+                        </div>
+                        <span class="text-xs">Add photo</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else>
+                    <UButton :loading="isUploading" :disabled="!selectedFile" @click="uploadPhoto">
+                      Upload Photo
+                    </UButton>
+                  </div>
+                </div>
+              </div>
               <div v-for="photo in plant.data[0].photos" :key="photo.id" class="relative group aspect-square">
-                <NuxtImg :src="photo.url" :alt="`Photo of ${plant.data[0].name}`"
+                <NuxtImg v-if="photo" :src="photo.url" :alt="`Photo of ${plant.data[0].name}`"
                      class="w-full h-full object-cover rounded-lg shadow-md"/>
                 <div
                     class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
@@ -41,14 +63,7 @@
                            @click="deletePhoto(photo.id)"/>
                 </div>
               </div>
-              <div @click="showUploadModal = true" class="bg-gray-300 hover:bg-gray-400 transition-colors aspect-square rounded-lg overflow-hidden p-2 cursor-pointer">
-                <div class="aspect-square border-1 border-dashed rounded-lg flex items-center justify-center">
-                  <div class="flex items-center justify-center flex-col">
-                    <Icon name="heroicons-solid:camera h-10 w-10"></Icon>
-                    <span class="text-xs">Add photo</span>
-                  </div>
-                </div>
-              </div>
+
             </div>
             <!-- No Photos State -->
             <div v-else class="bg-white rounded-xl shadow-lg p-6 text-center">
@@ -61,38 +76,6 @@
           </div>
         </div>
       </div>
-    </section>
-    <section class="dark:text-gray-900 pb-20">
-      <UModal v-model="showUploadModal">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold">Add Photo</h3>
-            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="showUploadModal = false"/>
-          </div>
-        </template>
-        <div class="space-y-4">
-          <UInput type="file" accept="image/*" class="w-full"
-                  :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
-                  @input="handleFileChange">
-            <template #leading>
-              <div class="sr-only">Choose file</div>
-            </template>
-          </UInput>
-          <div v-if="previewUrl" class="mt-2">
-            <NuxtImg :src="previewUrl" alt="Preview" class="w-full aspect-video object-cover rounded-lg"/>
-          </div>
-        </div>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="soft" @click="showUploadModal = false">
-              Cancel
-            </UButton>
-            <UButton :loading="isUploading" :disabled="!selectedFile" @click="uploadPhoto">
-              Upload Photo
-            </UButton>
-          </div>
-        </template>
-      </UModal>
     </section>
   </div>
 </template>
@@ -116,11 +99,13 @@ function formatDate(dateString: string) {
   })
 }
 
+const showUploadButton = ref(false)
 function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     selectedFile.value = input.files[0]
     previewUrl.value = URL.createObjectURL(input.files[0])
+    showUploadButton.value = true
   } else {
     selectedFile.value = null
     previewUrl.value = ''

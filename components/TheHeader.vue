@@ -24,6 +24,7 @@ const navItems = [
           </li>
         </ul>
       </nav>
+      <div></div>
     </BaseContainer>
   </header>
 </template>

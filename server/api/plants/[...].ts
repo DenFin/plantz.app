@@ -15,19 +15,21 @@ router.get(
     defineEventHandler(async (event: H3Event) => {
         try {
             const query = `
-                SELECT 
+                SELECT
                     p.*,
                     (
                         SELECT json_build_object(
-                            'id', ph.id,
-                            'image_url', ph.image_url
-                        )
+                                       'id', ph.id,
+                                       'image_url', ph.image_url
+                               )
                         FROM photos ph
                         WHERE ph.plant_id = p.id
+                        ORDER BY ph.taken_at DESC
                         LIMIT 1
                     ) as thumbnail
                 FROM plants p;
             `;
+
             const plants = await queryDatabase(query);
 
             // Create Minio client to generate URLs for thumbnails
@@ -62,17 +64,22 @@ router.get(
             console.log('Fetching plant details for ID:', id)
 
             const query = `
-                SELECT 
+                SELECT
                     p.*,
-                    CASE 
+                    CASE
                         WHEN COUNT(ph.id) = 0 THEN '[]'::json
-                        ELSE json_agg(ph.*)
-                    END as photos
+                        ELSE json_agg(ph ORDER BY ph.taken_at DESC)
+                        END as photos
                 FROM plants p
-                LEFT JOIN photos ph ON p.id = ph.plant_id
+                         LEFT JOIN (
+                    SELECT * FROM photos ORDER BY taken_at DESC
+                ) ph ON p.id = ph.plant_id
                 WHERE p.id = $1
                 GROUP BY p.id;
             `;
+
+
+
             const plants = await queryDatabase(query, [id]);
             console.log('Database response:', plants)
 
