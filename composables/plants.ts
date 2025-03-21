@@ -12,9 +12,14 @@ export const usePlants = () => {
         }
     }
 
+    function getPlantById(id: number) {
+      return many.value?.find(elem => elem.id === id)
+    }
+
     return {
         many,
         fetchMany,
+        getPlantById
     }
 
 }

@@ -1,79 +1,91 @@
 <template>
-  <section>
-    <div class="flex gap-1 items-center mb-4">
-      <NuxtLink class="flex items-center" to="/">
-        <Icon name="heroicons-solid:home" />
-      </NuxtLink>
-      <Icon name="heroicons:chevron-right" />
-      <p class="font-bold">Dashboard</p>
-    </div>
+  <div class="flex flex-col gap-12">
+    <section>
+      <div class="flex gap-1 items-center mb-4">
+        <NuxtLink class="flex items-center" to="/">
+          <Icon name="heroicons-solid:home"/>
+        </NuxtLink>
+        <Icon name="heroicons:chevron-right"/>
+        <p class="font-bold">Dashboard</p>
+      </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <BaseCard v-if="false">
-        <BaseHeadline element="h2" text="System Status" class="mb-4" />
-        <div class="space-y-4">
-          <div class="flex items-center gap-2">
-            <Icon v-if="dbStatus === 'connected'" name="heroicons:check-circle" class="w-6 h-6 text-emerald-500" />
-            <Icon v-if="dbStatus === 'error'" name="heroicons:x-circle" class="w-6 h-6 text-red-500" />
-            <span class="font-medium">Database Connection</span>
-            <UBadge v-if="dbStatus === 'connected'" color="success" variant="subtle">Connected</UBadge>
-            <UBadge v-if="dbStatus === 'error'" color="danger" variant="subtle">Error</UBadge>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <BaseCard v-if="false">
+          <BaseHeadline element="h2" text="System Status" class="mb-4"/>
+          <div class="space-y-4">
+            <div class="flex items-center gap-2">
+              <Icon v-if="dbStatus === 'connected'" name="heroicons:check-circle" class="w-6 h-6 text-emerald-500"/>
+              <Icon v-if="dbStatus === 'error'" name="heroicons:x-circle" class="w-6 h-6 text-red-500"/>
+              <span class="font-medium">Database Connection</span>
+              <UBadge v-if="dbStatus === 'connected'" color="success" variant="subtle">Connected</UBadge>
+              <UBadge v-if="dbStatus === 'error'" color="danger" variant="subtle">Error</UBadge>
+            </div>
+            <div class="flex items-center gap-2">
+              <Icon v-if="minioStatus === 'connected'" name="heroicons:check-circle" class="w-6 h-6 text-emerald-500"/>
+              <Icon v-if="minioStatus === 'error'" name="heroicons:x-circle" class="w-6 h-6 text-red-500"/>
+              <span class="font-medium">Minio Connection</span>
+              <UBadge v-if="minioStatus === 'connected'" color="success" variant="subtle">Connected</UBadge>
+              <UBadge v-if="minioStatus === 'error'" color="danger" variant="subtle">Error</UBadge>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <Icon v-if="minioStatus === 'connected'" name="heroicons:check-circle" class="w-6 h-6 text-emerald-500" />
-            <Icon v-if="minioStatus === 'error'" name="heroicons:x-circle" class="w-6 h-6 text-red-500" />
-            <span class="font-medium">Minio Connection</span>
-            <UBadge v-if="minioStatus === 'connected'" color="success" variant="subtle">Connected</UBadge>
-            <UBadge v-if="minioStatus === 'error'" color="danger" variant="subtle">Error</UBadge>
+        </BaseCard>
+        <BaseCard v-if="plantCount">
+          <div class="flex items-center flex-col gap-4">
+            <div class="bg-emerald-100 p-4 rounded-full flex">
+              <UIcon name="i-lucide-flower-2" class="bg-emerald-500 size-5"/>
+            </div>
+            <div class="flex flex-col  text-center">
+              <span class="font-bold text-5xl">{{ plantCount?.data[0].count }}</span>
+              <span class="text-sm text-gray-500">Plants</span>
+            </div>
           </div>
-        </div>
-      </BaseCard>
-      <BaseCard v-if="plantCount">
-        <div class="flex items-center flex-col gap-4">
-          <div class="bg-emerald-100 p-4 rounded-full flex">
-            <UIcon name="i-lucide-flower-2" class="bg-emerald-500 size-5" />
+        </BaseCard>
+        <BaseCard v-if="photosCount">
+          <div class="flex items-center flex-col gap-4">
+            <div class="bg-emerald-100 p-4 rounded-full flex">
+              <UIcon name="i-lucide-camera" class="bg-emerald-500 size-5"/>
+            </div>
+            <div class="flex flex-col  text-center">
+              <span class="font-bold text-5xl">{{ photosCount?.data[0].count }}</span>
+              <span class="text-sm text-gray-500">Photos</span>
+            </div>
           </div>
-          <div class="flex flex-col  text-center">
-            <span class="font-bold text-5xl">{{ plantCount?.data[0].count }}</span>
-            <span class="text-sm text-gray-500">Plants</span>
+        </BaseCard>
+        <BaseCard v-if="roomsCount">
+          <div class="flex items-center flex-col gap-4">
+            <div class="bg-emerald-100 p-4 rounded-full flex">
+              <UIcon name="ic:baseline-room" class="bg-emerald-500 size-5"/>
+            </div>
+            <div class="flex flex-col  text-center">
+              <span class="font-bold text-5xl">{{ roomsCount }}</span>
+              <span class="text-sm text-gray-500">Rooms</span>
+            </div>
           </div>
-        </div>
-      </BaseCard>
-      <BaseCard v-if="photosCount">
-        <div class="flex items-center flex-col gap-4">
-          <div class="bg-emerald-100 p-4 rounded-full flex">
-            <UIcon name="i-lucide-camera" class="bg-emerald-500 size-5" />
+        </BaseCard>
+        <BaseCard v-if="notes && !!notes?.data.length">
+          <div class="flex items-center flex-col gap-4">
+            <div class="bg-emerald-100 p-4 rounded-full flex">
+              <UIcon name="material-symbols:note-outline-rounded" class="bg-emerald-500 size-5"/>
+            </div>
+            <div class="flex flex-col  text-center">
+              <span class="font-bold text-5xl">{{ notes.data.length }}</span>
+              <span class="text-sm text-gray-500">Notes</span>
+            </div>
           </div>
-          <div class="flex flex-col  text-center">
-            <span class="font-bold text-5xl">{{ photosCount?.data[0].count }}</span>
-            <span class="text-sm text-gray-500">Photos</span>
-          </div>
-        </div>
-      </BaseCard>
-      <BaseCard v-if="roomsCount">
-        <div class="flex items-center flex-col gap-4">
-          <div class="bg-emerald-100 p-4 rounded-full flex">
-            <UIcon name="ic:baseline-room" class="bg-emerald-500 size-5" />
-          </div>
-          <div class="flex flex-col  text-center">
-            <span class="font-bold text-5xl">{{ roomsCount }}</span>
-            <span class="text-sm text-gray-500">Rooms</span>
-          </div>
-        </div>
-      </BaseCard>
-      <BaseCard v-if="notes && !!notes?.data.length">
-        <div class="flex items-center flex-col gap-4">
-          <div class="bg-emerald-100 p-4 rounded-full flex">
-            <UIcon name="material-symbols:note-outline-rounded" class="bg-emerald-500 size-5" />
-          </div>
-          <div class="flex flex-col  text-center">
-            <span class="font-bold text-5xl">{{ notes.data.length }}</span>
-            <span class="text-sm text-gray-500">Notes</span>
-          </div>
-        </div>
-      </BaseCard>
-    </div>
-  </section>
+        </BaseCard>
+      </div>
+    </section>
+    <section id="recent-notes">
+      <h2 class="font-bold text-xl mb-3">Recent notes</h2>
+      <div class="flex flex-col gap-3">
+        <BaseCard v-for="note in recent" :key="note.id">
+          <p class="text-xs mb-3">{{ note.created_at }}</p>
+          <p class="font-bold">{{ getPlantById(note.plant_id).name }}</p>
+          <p class="">{{ note.content }}</p>
+        </BaseCard>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup>
@@ -86,8 +98,14 @@ const { data: plantCount } = useFetch('/api/plants/count')
 const { data: photosCount } = useFetch('/api/plants/photos')
 const { data: notes } = useFetch('/api/notes')
 
+const { getPlantById, fetchMany: fetchPlants } = usePlants()
+fetchPlants()
+
 const { count: roomsCount, fetchMany: fetchRooms } = useRooms()
 fetchRooms()
+
+const { recent, fetchRecent } = useNotes()
+fetchRecent()
 
 async function fetchDbStatus() {
   try {
