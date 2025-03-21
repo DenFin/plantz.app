@@ -39,7 +39,7 @@
             <h2 class="font-bold">{{ note.content }}</h2>
           </BaseCard>
           <div>
-            <UModal >
+            <UModal v-model:open="isNoteModalOpen">
               <UButton leading-icon="material-symbols:note-outline-rounded" label="Add note" color="primary" variant="solid" />
 
               <template #content>
@@ -278,7 +278,7 @@ const lightboxPhotoUrl = computed<string>(() => {
   return plant?.value?.data?.[0]?.photos?.[lightboxPhotoIndex.value]?.url
 })
 
-
+const isNoteModalOpen = ref(false)
 const note = ref('')
 async function insertNote() {
 
@@ -293,6 +293,8 @@ async function insertNote() {
         toast.add({
           title: 'Successfully inserted note.',
         })
+        isNoteModalOpen.value = false
+        refresh()
         console.log(response)
         switch(response.response?.status) {
           case 200:

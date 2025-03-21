@@ -9,7 +9,7 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <BaseCard>
+      <BaseCard v-if="false">
         <BaseHeadline element="h2" text="System Status" class="mb-4" />
         <div class="space-y-4">
           <div class="flex items-center gap-2">
@@ -61,6 +61,17 @@
           </div>
         </div>
       </BaseCard>
+      <BaseCard v-if="notes && !!notes?.data.length">
+        <div class="flex items-center flex-col gap-4">
+          <div class="bg-emerald-100 p-4 rounded-full flex">
+            <UIcon name="material-symbols:note-outline-rounded" class="bg-emerald-500 size-5" />
+          </div>
+          <div class="flex flex-col  text-center">
+            <span class="font-bold text-5xl">{{ notes.data.length }}</span>
+            <span class="text-sm text-gray-500">Notes</span>
+          </div>
+        </div>
+      </BaseCard>
     </div>
   </section>
 </template>
@@ -73,6 +84,7 @@ const minioStatus = ref('');
 
 const { data: plantCount } = useFetch('/api/plants/count')
 const { data: photosCount } = useFetch('/api/plants/photos')
+const { data: notes } = useFetch('/api/notes')
 
 const { count: roomsCount, fetchMany: fetchRooms } = useRooms()
 fetchRooms()
