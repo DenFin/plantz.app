@@ -75,12 +75,12 @@
         </BaseCard>
       </div>
     </section>
-    <section id="recent-notes">
+    <section v-if="recent" id="recent-notes">
       <h2 class="font-bold text-xl mb-3">Recent notes</h2>
       <div class="flex flex-col gap-3">
         <BaseCard v-for="note in recent" :key="note.id">
           <p class="text-xs mb-3">{{ note.created_at }}</p>
-          <p class="font-bold">{{ getPlantById(note.plant_id).name }}</p>
+          <p class="font-bold">{{ getPlantById(note.plant_id)?.name }}</p>
           <p class="">{{ note.content }}</p>
         </BaseCard>
       </div>

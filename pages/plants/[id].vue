@@ -98,8 +98,8 @@
       </div>
     </section>
     <!-- PlantLightbox -->
-    <div v-if="showLightbox" class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex justify-center items-center p-20" @click.self="closeLightbox">
-      <div class="h-full relative">
+    <div v-if="showLightbox" class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex justify-center items-center p-4 xl:p-20" @click.self="closeLightbox">
+      <div class="h-full max-h-screen relative flex items-center">
         <div class="absolute">
           <UIcon @click="previousPhoto" name="i-heroicons:chevron-left" size="xs"
                  class="w-8 h-8 mx-auto mb-3 text-gray-400 cursor-pointer"/>
@@ -109,7 +109,7 @@
         <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2">
           {{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}
         </div>
-        <NuxtImg class="h-full rounded-lg overflow-hidden" :src="lightboxPhotoUrl"/>
+        <NuxtImg class="h-auto max-h-full w-auto rounded-lg overflow-hidden" :src="lightboxPhotoUrl"/>
       </div>
     </div>
     <!-- PlantEditModal -->
