@@ -8,6 +8,10 @@ const navItems = [
   {
     text: 'Plants',
     to: '/plants',
+  },
+  {
+    text: 'Rooms',
+    to: '/rooms',
   }
 ]
 

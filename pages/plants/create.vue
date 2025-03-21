@@ -23,6 +23,10 @@
         <BaseLabel text="Location" />
         <UInput v-model="location" placeholder="Where is the plant located?" />
       </div>
+      <div v-if="rooms" class="flex flex-col gap-1">
+        <BaseLabel text="Room" />
+        <USelect :items="rooms" v-model="room"  label-key="name" value-key="id" placeholder="Where is the plant located?" />
+      </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Photo" />
         <UInput
@@ -49,9 +53,15 @@ const toast = useToast()
 const name = ref('')
 const species = ref('')
 const location = ref('')
+const room = ref('')
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isSubmitting = ref(false)
+
+const { many: rooms, fetchMany: fetchRooms } = useRooms()
+
+fetchRooms()
+
 
 function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
@@ -73,6 +83,7 @@ async function addPlant() {
     formData.append('name', name.value)
     formData.append('species', species.value)
     formData.append('location', location.value)
+    formData.append('room', room.value)
     if (selectedFile.value) {
       formData.append('photo', selectedFile.value)
     }

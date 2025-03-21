@@ -69,7 +69,12 @@ router.get(
                     CASE
                         WHEN COUNT(ph.id) = 0 THEN '[]'::json
                         ELSE json_agg(ph ORDER BY ph.taken_at DESC)
-                        END as photos
+                        END as photos,
+                    COALESCE(
+                            (SELECT json_agg(n ORDER BY n.created_at DESC)
+                             FROM notes n
+                             WHERE n.plant_id = p.id), '[]'::json
+                    ) as notes
                 FROM plants p
                          LEFT JOIN (
                     SELECT * FROM photos ORDER BY taken_at DESC
@@ -80,7 +85,10 @@ router.get(
 
 
 
+
+
             const plants = await queryDatabase(query, [id]);
+            console.log(plants);
             console.log('Database response:', plants)
 
             if (!plants || plants.length === 0) {
@@ -250,7 +258,7 @@ router.post(
             const form = formidable({});
             const [fields, files] = await form.parse(event.node.req);
 
-            if (!fields.name?.[0] || !fields.species?.[0] || !fields.location?.[0]) {
+            if (!fields.name?.[0] || !fields.species?.[0] || !fields.location?.[0] || !fields.room?.[0]) {
                 return { error: 'Missing required fields', status: 400 };
             }
 
@@ -261,14 +269,15 @@ router.post(
 
                 // 1. Create the plant
                 const createPlantQuery = `
-                    INSERT INTO plants (name, species, location)
-                    VALUES ($1, $2, $3)
+                    INSERT INTO plants (name, species, location, room_id)
+                    VALUES ($1, $2, $3, $4)
                     RETURNING id;
                 `;
                 const plantResult = await client.query(createPlantQuery, [
                     fields.name[0],
                     fields.species[0],
-                    fields.location[0]
+                    fields.location[0],
+                    fields.room[0]
                 ]);
                 const plantId = plantResult.rows[0].id;
 

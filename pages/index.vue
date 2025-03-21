@@ -8,7 +8,7 @@
       <p class="font-bold">Dashboard</p>
     </div>
 
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <BaseCard>
         <BaseHeadline element="h2" text="System Status" class="mb-4" />
         <div class="space-y-4">
@@ -50,6 +50,17 @@
           </div>
         </div>
       </BaseCard>
+      <BaseCard v-if="roomsCount">
+        <div class="flex items-center flex-col gap-4">
+          <div class="bg-emerald-100 p-4 rounded-full flex">
+            <UIcon name="ic:baseline-room" class="bg-emerald-500 size-5" />
+          </div>
+          <div class="flex flex-col  text-center">
+            <span class="font-bold text-5xl">{{ roomsCount }}</span>
+            <span class="text-sm text-gray-500">Rooms</span>
+          </div>
+        </div>
+      </BaseCard>
     </div>
   </section>
 </template>
@@ -62,6 +73,9 @@ const minioStatus = ref('');
 
 const { data: plantCount } = useFetch('/api/plants/count')
 const { data: photosCount } = useFetch('/api/plants/photos')
+
+const { count: roomsCount, fetchMany: fetchRooms } = useRooms()
+fetchRooms()
 
 async function fetchDbStatus() {
   try {

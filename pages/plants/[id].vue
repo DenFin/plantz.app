@@ -1,7 +1,7 @@
 <template>
-  <div  v-if="plant && plant.data && plant.data[0]" class="flex flex-col gap-8">
+  <div v-if="plant && plant.data && plant.data[0]" class="flex flex-col gap-8">
     <section id="breadcrumbs">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center text-gray-800">
         <div class="flex gap-1  items-center">
           <NuxtLink to="/">
             <Icon name="heroicons-solid:home"/>
@@ -13,31 +13,59 @@
           <Icon name="heroicons:chevron-right"/>
           <p class="font-bold">{{ plant.data[0].name }}</p>
         </div>
-        <div class="bg-emerald-700 flex p-2 rounded-lg cursor-pointer hover:bg-emerald-600 transition-colors duration-200">
-          <UIcon class="bg-emerald-100 w-5 h-5" name="i-heroicons:ellipsis-vertical" />
+        <div v-if="false"
+            class="bg-emerald-700 flex p-2 rounded-lg cursor-pointer hover:bg-emerald-600 transition-colors duration-200">
+          <UIcon class="bg-emerald-100 w-5 h-5" name="i-heroicons:ellipsis-vertical"/>
         </div>
       </div>
     </section>
     <section>
       <div class="flex flex-col lg:flex-row gap-8">
-        <BaseCard class="self-start w-full lg:basis-1/2">
-          <h1 class="text-3xl font-bold mb-8">{{ plant.data[0].name }}</h1>
-          <div class="flex flex-col gap-2"><p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
-            <USeparator/>
-            <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
-            <USeparator/>
-            <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p></div>
-        </BaseCard>
+        <div class="self-start w-full lg:basis-1/2 flex flex-col gap-3">
+          <BaseCard>
+            <h1 class="text-3xl font-bold mb-8">{{ plant.data[0].name }}</h1>
+            <div class="flex flex-col gap-2"><p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
+              <USeparator/>
+              <p><span class="font-bold">Room: </span>{{ getRoomById(plant.data[0].room_id).name }}</p>
+              <USeparator/>
+              <p><span class="font-bold">Room orientation: </span>{{ getRoomById(plant.data[0].room_id).orientation }}</p>
+              <USeparator/>
+              <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
+              <USeparator/>
+              <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p></div>
+          </BaseCard>
+          <BaseCard v-for="note in plant.data[0].notes">
+            <p class="text-xs">{{ formatDate(note.created_at)}}</p>
+            <h2 class="font-bold">{{ note.content }}</h2>
+          </BaseCard>
+          <div>
+            <UModal >
+              <UButton leading-icon="material-symbols:note-outline-rounded" label="Add note" color="primary" variant="solid" />
+
+              <template #content>
+                <form class="p-8 flex flex-col gap-3 items-start" @submit.prevent="insertNote">
+                  <div class="flex flex-col gap-1 w-full">
+                    <BaseLabel text="Note" />
+                    <UTextarea class="w-full" v-model="note" placeholder="Enter a note" />
+                  </div>
+                  <UButton type="submit" leading-icon="material-symbols:note-outline-rounded" label="Save note" color="primary" variant="solid" />
+                </form>
+              </template>
+            </UModal>
+          </div>
+        </div>
         <div class="basis-full lg:basis-1/2">
           <!-- Photos Section -->
           <div class="space-y-4 mb-8">
             <!-- Photos Grid -->
-            <div v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
+            <div
                  class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              <div class="bg-emerald-200 hover:bg-emerald-300 transition-colors aspect-square rounded-lg overflow-hidden p-2 cursor-pointer relative">
-                <div  class="aspect-square border-1 border-dashed rounded-lg flex items-center justify-center">
-                  <div v-if="!showUploadButton"><input @input="handleFileChange" accept="image/*" type="file"
-                                                       class="opacity-0 absolute top-0 right-0 bottom-0 left-0 z-20 cursor-pointer">
+              <div
+                  class="bg-emerald-200 hover:bg-emerald-300 transition-colors aspect-square rounded-lg overflow-hidden p-2 cursor-pointer relative">
+                <div class="aspect-square border-1 border-dashed rounded-lg flex items-center justify-center">
+                  <div v-if="!showUploadButton">
+                    <input @input="handleFileChange" accept="image/*" type="file"
+                           class="opacity-0 absolute top-0 right-0 bottom-0 left-0 z-20 cursor-pointer">
                     <div>
                       <div class="flex items-center justify-center flex-col">
                         <div>
@@ -54,29 +82,66 @@
                   </div>
                 </div>
               </div>
-              <div v-for="photo in plant.data[0].photos" :key="photo.id" class="relative group aspect-square">
+              <div v-if="plant.data[0].photos && plant.data[0].photos.length > 0" v-for="(photo, index) in plant.data[0].photos" :key="photo.id" class="relative group aspect-square">
                 <NuxtImg v-if="photo" :src="photo.url" :alt="`Photo of ${plant.data[0].name}`"
-                     class="w-full h-full object-cover rounded-lg shadow-md"/>
+                         class="w-full h-full object-cover rounded-lg shadow-md"/>
                 <div
-                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                  <UButton color="error" variant="ghost" icon="i-heroicons-trash" size="xs" class="!text-white"
-                           @click="deletePhoto(photo.id)"/>
+                    @click="openPhotoInLightbox(index)"
+                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer">
+                  <UButton color="error" variant="ghost" icon="i-heroicons-magnifying-glass-plus" size="xs" class="cursor-pointer !text-white"
+                           />
                 </div>
               </div>
-
-            </div>
-            <!-- No Photos State -->
-            <div v-else class="bg-white rounded-xl shadow-lg p-6 text-center">
-              <Icon name="i-heroicons-camera" class="w-8 h-8 mx-auto mb-3 text-gray-400"/>
-              <p class="text-gray-500 text-sm">No photos yet</p>
-              <UButton size="sm" icon="i-heroicons-camera" class="mt-3" @click="showUploadModal = true">
-                Add first photo
-              </UButton>
             </div>
           </div>
         </div>
       </div>
     </section>
+    <!-- PlantLightbox -->
+    <div v-if="showLightbox" class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex justify-center items-center p-20" @click.self="closeLightbox">
+      <div class="h-full relative">
+        <div class="absolute">
+          <UIcon @click="previousPhoto" name="i-heroicons:chevron-left" size="xs"
+                 class="w-8 h-8 mx-auto mb-3 text-gray-400 cursor-pointer"/>
+          <UIcon @click="nextPhoto" name="i-heroicons:chevron-right" size="xs"
+                 class="w-8 h-8 mx-auto mb-3 text-gray-400 cursor-pointer"/>
+        </div>
+        <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2">
+          {{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}
+        </div>
+        <NuxtImg class="h-full rounded-lg overflow-hidden" :src="lightboxPhotoUrl"/>
+      </div>
+    </div>
+    <!-- PlantEditModal -->
+    <UModal>
+      <UButton icon="heroicons:pencil" size="xl"
+               class="fixed bottom-5 lg:bottom-10 right-5 lg:right-10 shadow-xl font-bold cursor-pointer">Edit
+      </UButton>
+      <template #content>
+        <form @submit.prevent="editPlant" class="p-8 flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Name" />
+            <UInput v-model="plant.data[0].name" placeholder="Plant name" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Species" />
+            <UInput v-model="plant.data[0].species" placeholder="Plant species" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Location" />
+            <UInput v-model="plant.data[0].location" placeholder="Where is the plant located?" />
+          </div>
+          <div v-if="rooms" class="flex flex-col gap-1">
+            <BaseLabel text="Room" />
+            <USelect :items="rooms" v-model="plant.data[0].room_id"  label-key="name" value-key="id" placeholder="Where is the plant located?" />
+          </div>
+          <UButton type="submit" :loading="isSubmitting" class="self-start">
+            {{ isSubmitting ? 'Creating plant...' : 'Submit' }}
+          </UButton>
+        </form>
+      </template>
+    </UModal>
+
   </div>
 </template>
 
@@ -85,14 +150,17 @@ const route = useRoute()
 const toast = useToast()
 const id = route.params.id
 
-const { data: plant, refresh } = useFetch(`/api/plants/${id}`)
+const {data: plant, refresh} = useFetch(`/api/plants/${id}`)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isUploading = ref(false)
 const showUploadModal = ref(false)
 
+const { many: rooms, fetchMany: fetchRooms, getRoomById } = useRooms()
+fetchRooms()
+
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('de-DE', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -100,6 +168,7 @@ function formatDate(dateString: string) {
 }
 
 const showUploadButton = ref(false)
+
 function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
@@ -139,6 +208,7 @@ async function uploadPhoto() {
         color: 'success'
       })
       showUploadModal.value = false
+      showUploadButton.value = false
       selectedFile.value = null
       previewUrl.value = ''
       refresh()
@@ -180,5 +250,66 @@ async function deletePhoto(photoId: string) {
     })
     console.error(e)
   }
+}
+
+
+const showLightbox = ref(false)
+const lightboxPhotoIndex = ref(0)
+
+function closeLightbox() {
+  showLightbox.value = false
+  lightboxPhotoIndex.value = 0
+}
+
+function openPhotoInLightbox(index: number) {
+  showLightbox.value = true
+  lightboxPhotoIndex.value = index
+}
+
+function nextPhoto() {
+  lightboxPhotoIndex.value++
+}
+
+function previousPhoto() {
+  lightboxPhotoIndex.value--
+}
+
+const lightboxPhotoUrl = computed<string>(() => {
+  return plant?.value?.data?.[0]?.photos?.[lightboxPhotoIndex.value]?.url
+})
+
+
+const note = ref('')
+async function insertNote() {
+
+  try {
+    const response = await $fetch('/api/notes', {
+      method: 'POST',
+      body: {
+        plant_id: id,
+        note: note.value,
+      },
+      onResponse: (response) => {
+        toast.add({
+          title: 'Successfully inserted note.',
+        })
+        console.log(response)
+        switch(response.response?.status) {
+          case 200:
+            console.log('200')
+            break;
+          case 201:
+            console.log('201')
+            break;
+          case 400:
+            console.log('400')
+
+        }
+      }
+    })
+  } catch (e) {
+    console.error(e)
+  }
+
 }
 </script>
