@@ -75,14 +75,27 @@
         </BaseCard>
       </div>
     </section>
-    <section v-if="recent" id="recent-notes">
-      <h2 class="font-bold text-xl mb-3">Recent notes</h2>
-      <div class="flex flex-col gap-3">
-        <BaseCard v-for="note in recent" :key="note.id">
-          <p class="text-xs mb-3">{{ note.created_at }}</p>
-          <p class="font-bold">{{ getPlantById(note.plant_id)?.name }}</p>
-          <p class="">{{ note.content }}</p>
-        </BaseCard>
+    <section id="recent-notes" class="grid lg:grid-cols-2  gap-4">
+      <div  v-if="recentNotes">
+        <h2 class="font-bold text-xl mb-3">Recent notes</h2>
+        <div class="flex flex-col gap-3">
+          <BaseCard v-for="note in recentNotes" :key="note.id">
+            <p v-if="note.created_at" class="text-xs mb-3">{{ formatDate(note.created_at) }}</p>
+            <NuxtLink :to="`/plants/${note.plant_id}`" class="font-bold">{{
+                getPlantById(note.plant_id)?.name
+              }}
+            </NuxtLink>
+            <p class="">{{ note.content }}</p>
+          </BaseCard>
+        </div>
+      </div>
+      <div v-if="recentPhotos">
+        <h2 class="font-bold text-xl mb-3">Recent photos</h2>
+        <div class="grid grid-cols-3 gap-3">
+          <figure class="rounded-lg aspect-square overflow-hidden" v-for="photo in recentPhotos" :key="photo.id">
+            <NuxtImg class="h-full w-full object-cover" :src="photo.image_url" />
+          </figure>
+        </div>
       </div>
     </section>
   </div>
@@ -90,13 +103,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import {formatDate} from "~/utils/utils";
+import {usePhotos} from "~/composables/photos";
 
 const dbStatus = ref('');
 const minioStatus = ref('');
 
-const { data: plantCount } = useFetch('/api/plants/count')
-const { data: photosCount } = useFetch('/api/plants/photos')
-const { data: notes } = useFetch('/api/notes')
+const { data: plantCount } = useFetch('/api/plants/count', { lazy: true})
+const { data: photosCount } = useFetch('/api/plants/photos', { lazy: true})
+const { data: notes } = useFetch('/api/notes', { lazy: true})
 
 const { getPlantById, fetchMany: fetchPlants } = usePlants()
 fetchPlants()
@@ -104,8 +119,11 @@ fetchPlants()
 const { count: roomsCount, fetchMany: fetchRooms } = useRooms()
 fetchRooms()
 
-const { recent, fetchRecent } = useNotes()
-fetchRecent()
+const { recent: recentNotes, fetchRecent: fetchRecentNotes } = useNotes()
+fetchRecentNotes()
+
+const { recent: recentPhotos, fetchRecent: fetchRecentPhotos } = usePhotos()
+fetchRecentPhotos()
 
 async function fetchDbStatus() {
   try {

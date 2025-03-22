@@ -41,7 +41,6 @@
           <div>
             <UModal v-model:open="isNoteModalOpen">
               <UButton leading-icon="material-symbols:note-outline-rounded" label="Add note" color="primary" variant="solid" />
-
               <template #content>
                 <form class="p-8 flex flex-col gap-3 items-start" @submit.prevent="insertNote">
                   <div class="flex flex-col gap-1 w-full">
@@ -98,13 +97,17 @@
       </div>
     </section>
     <!-- PlantLightbox -->
-    <div v-if="showLightbox" class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex justify-center items-center p-4 xl:p-20" @click.self="closeLightbox">
+    <div v-if="showLightbox" class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center p-4 xl:p-20" @click.self="closeLightbox">
       <div class="h-full max-h-screen relative flex items-center">
-        <div class="absolute">
-          <UIcon @click="previousPhoto" name="i-heroicons:chevron-left" size="xs"
-                 class="w-8 h-8 mx-auto mb-3 text-gray-400 cursor-pointer"/>
-          <UIcon @click="nextPhoto" name="i-heroicons:chevron-right" size="xs"
-                 class="w-8 h-8 mx-auto mb-3 text-gray-400 cursor-pointer"/>
+        <div class="absolute flex w-full justify-between">
+          <div class="bg-white p-1 flex rounded-lg  -translate-x-full">
+            <UIcon @keydown.left="previousPhoto" @click="previousPhoto" name="i-heroicons:chevron-left" size="xs"
+                   class="w-8 h-8 text-gray-900 cursor-pointer"/>
+          </div>
+          <div class="bg-white p-1 flex rounded-lg translate-x-full">
+            <UIcon @keyup.left="nextPhoto" @click="nextPhoto" name="i-heroicons:chevron-right" size="xs"
+                   class="w-8 h-8 text-gray-900 cursor-pointer"/>
+          </div>
         </div>
         <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2">
           {{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}
@@ -113,7 +116,7 @@
       </div>
     </div>
     <!-- PlantEditModal -->
-    <UModal>
+    <UModal v-model:open="showPlantEditModal">
       <UButton icon="heroicons:pencil" size="xl"
                class="fixed bottom-5 lg:bottom-10 right-5 lg:right-10 shadow-xl font-bold cursor-pointer">Edit
       </UButton>
@@ -121,22 +124,22 @@
         <form @submit.prevent="editPlant" class="p-8 flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <BaseLabel text="Name" />
-            <UInput v-model="plant.data[0].name" placeholder="Plant name" />
+            <UInput v-model="plantToEdit.name" placeholder="Plant name" />
           </div>
           <div class="flex flex-col gap-1">
             <BaseLabel text="Species" />
-            <UInput v-model="plant.data[0].species" placeholder="Plant species" />
+            <UInput v-model="plantToEdit.species" placeholder="Plant species" />
           </div>
           <div class="flex flex-col gap-1">
             <BaseLabel text="Location" />
-            <UInput v-model="plant.data[0].location" placeholder="Where is the plant located?" />
+            <UInput v-model="plantToEdit.location" placeholder="Where is the plant located?" />
           </div>
           <div v-if="rooms" class="flex flex-col gap-1">
             <BaseLabel text="Room" />
-            <USelect :items="rooms" v-model="plant.data[0].room_id"  label-key="name" value-key="id" placeholder="Where is the plant located?" />
+            <USelect :items="rooms" v-model="plantToEdit.room_id"  label-key="name" value-key="id" placeholder="Where is the plant located?" />
           </div>
-          <UButton type="submit" :loading="isSubmitting" class="self-start">
-            {{ isSubmitting ? 'Creating plant...' : 'Submit' }}
+          <UButton type="submit" :loading="isUpdating" class="self-start">
+            {{ isUpdating ? 'Updating plant...' : 'Submit' }}
           </UButton>
         </form>
       </template>
@@ -146,6 +149,8 @@
 </template>
 
 <script setup lang="ts">
+import { useMagicKeys } from '@vueuse/core'
+
 const route = useRoute()
 const toast = useToast()
 const id = route.params.id
@@ -267,11 +272,19 @@ function openPhotoInLightbox(index: number) {
 }
 
 function nextPhoto() {
-  lightboxPhotoIndex.value++
+  if(lightboxPhotoIndex.value + 1 === plant.value.data[0].photos.length) {
+    lightboxPhotoIndex.value = 0
+  } else {
+    lightboxPhotoIndex.value++
+  }
 }
 
 function previousPhoto() {
-  lightboxPhotoIndex.value--
+  if(lightboxPhotoIndex.value === 0) {
+    lightboxPhotoIndex.value = plant.value.data[0].photos.length -1
+  } else {
+    lightboxPhotoIndex.value--
+  }
 }
 
 const lightboxPhotoUrl = computed<string>(() => {
@@ -313,5 +326,59 @@ async function insertNote() {
     console.error(e)
   }
 
+}
+
+const plantToEdit = ref({
+  id: plant.value?.data?.[0]?.id,
+  name: plant.value?.data?.[0]?.name,
+  species: plant.value?.data?.[0]?.species,
+  location: plant.value?.data?.[0]?.location,
+  room_id: plant.value?.data?.[0]?.room_id,
+})
+
+watch(plant, (newVal, oldVal) => {
+  plantToEdit.value = {
+    id: plant.value?.data?.[0]?.id,
+    name: plant.value?.data?.[0]?.name,
+    species: plant.value?.data?.[0]?.species,
+    location: plant.value?.data?.[0]?.location,
+    room_id: plant.value?.data?.[0]?.room_id,
+  }
+})
+
+const { left, right, escape } = useMagicKeys()
+watch(left, (v) => {
+  if (v)
+    previousPhoto()
+})
+
+watch(right, (v) => {
+  if (v) nextPhoto();
+});
+
+watch(escape, (v) => {
+  if (v) showLightbox.value = false
+});
+
+const showPlantEditModal = ref(false)
+const isUpdating = ref(false)
+async function editPlant() {
+  try {
+    await $fetch(`/api/plants/${id}`, {
+      method: 'PUT',
+      body: plantToEdit.value,
+      onResponse: (response) => {
+        if(response.response?.status === 200) {
+          toast.add({
+            title: 'Successfully edited plant',
+          })
+          refresh()
+          showPlantEditModal.value = false
+        }
+      }
+    })
+  } catch(error) {
+    console.error(error)
+  }
 }
 </script>

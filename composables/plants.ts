@@ -4,7 +4,7 @@ export const usePlants = () => {
 
     async function fetchMany() {
         try {
-            const response = await $fetch('/api/plants');
+            const response = await $fetch('/api/plants' , { lazy: true });
             many.value = response.data;
             return response
         } catch(e) {

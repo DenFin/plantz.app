@@ -38,10 +38,12 @@
       sideOffset: 8
     }"
               >
-                <UButton @click.prevent icon="heroicons:ellipsis-vertical" color="neutral" variant="subtle"/>
+                <UButton class="bg-gray-100 cursor-pointer" @click.prevent icon="heroicons:ellipsis-vertical" color="neutral" variant="solid"/>
 
                 <template #content>
-                  <UButton color="primary" @click="deletePlant(plant.id)">Delete plant</UButton>
+                  <div class="p-2">
+                    <UButton color="primary" @click="deletePlant(plant.id)">Delete plant</UButton>
+                  </div>
                 </template>
               </UPopover>
             </div>

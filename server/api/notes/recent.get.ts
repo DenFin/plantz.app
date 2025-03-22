@@ -3,7 +3,10 @@ import {queryDatabase} from "~/server/utils/db";
 
 export default defineEventHandler(async () => {
     try {
-        const query = 'SELECT * FROM notes WHERE created_at >= (CURRENT_TIMESTAMP - INTERVAL \'3 days\')';
+        const query = `
+            SELECT * FROM notes 
+            WHERE created_at >= (CURRENT_TIMESTAMP - INTERVAL \'3 days\')
+            ORDER BY created_at DESC`
 
 
 
