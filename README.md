@@ -5,7 +5,7 @@ Plantz is a personal project that helps me to overview all my houseplants, track
 ## Database migrations
 
 ```bash
-psql -h 192.168.2.177> -U admin -d plantz
+psql -h 192.168.2.177 -U admin -d plantz
 ```
 
 ## Deployment

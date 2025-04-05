@@ -47,6 +47,19 @@
                     <BaseLabel text="Note" />
                     <UTextarea class="w-full" v-model="note" placeholder="Enter a note" />
                   </div>
+                  <div class="flex flex-col gap-1">
+                    <BaseLabel text="Photo" />
+                    <UInput
+                        type="file"
+                        accept="image/*"
+                        class="w-full"
+                        :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
+                        @input="handleFileChange"
+                    />
+                    <div v-if="previewUrl" class="mt-2">
+                      <NuxtImg :src="previewUrl" alt="Preview" class="w-32 h-32 object-cover rounded-lg" />
+                    </div>
+                  </div>
                   <UButton type="submit" leading-icon="material-symbols:note-outline-rounded" label="Save note" color="primary" variant="solid" />
                 </form>
               </template>
@@ -89,6 +102,7 @@
                     class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer">
                   <UButton color="error" variant="ghost" icon="i-heroicons-magnifying-glass-plus" size="xs" class="cursor-pointer !text-white"
                            />
+                  <UBadge class="absolute bottom-2" color="neutral">{{ formatDate(photo.taken_at) }}</UBadge>
                 </div>
               </div>
             </div>
