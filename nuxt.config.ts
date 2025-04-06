@@ -17,5 +17,10 @@ export default defineNuxtConfig({
       navigateFallbackAllowlist: [/^\/$/],
       type: 'module',
     },
+  },
+  vite: {
+    server: {
+      allowedHosts: ["plantz.app.local"]
+    }
   }
 })
