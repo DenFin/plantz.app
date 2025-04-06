@@ -7,5 +7,4 @@
       <slot name="default" />
     </div>
   </article>
-
 </template>

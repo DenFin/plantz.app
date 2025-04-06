@@ -7,27 +7,49 @@
       <Icon name="heroicons:chevron-right" />
       <NuxtLink to="/rooms"><p class="font-bold">Rooms</p></NuxtLink>
       <Icon name="heroicons:chevron-right" />
-      <p class="font-bold">Add a room</p>
+      <p class="font-bold">
+        Add a room
+      </p>
     </div>
 
-    <form @submit.prevent="addRoom" class="bg-white shadow-xl p-8 rounded-xl flex flex-col gap-4">
+    <form
+      class="bg-white shadow-xl p-8 rounded-xl flex flex-col gap-4"
+      @submit.prevent="addRoom"
+    >
       <div class="flex flex-col gap-1">
         <BaseLabel text="Name" />
-        <UInput v-model="name" placeholder="Room name" />
+        <UInput
+          v-model="name"
+          placeholder="Room name"
+        />
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Color" />
-        <input type="color" v-model="color" placeholder="Room name" />
+        <input
+          v-model="color"
+          type="color"
+          placeholder="Room name"
+        >
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Icon" />
-        <UInput v-model="icon" placeholder="Room name" />
+        <UInput
+          v-model="icon"
+          placeholder="Room name"
+        />
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Orientation" />
-        <UInput v-model="orientation" placeholder="Room name" />
+        <UInput
+          v-model="orientation"
+          placeholder="Room name"
+        />
       </div>
-      <UButton type="submit" :loading="isSubmitting" class="self-start">
+      <UButton
+        type="submit"
+        :loading="isSubmitting"
+        class="self-start"
+      >
         {{ isSubmitting ? 'Creating room...' : 'Submit' }}
       </UButton>
     </form>
@@ -40,10 +62,9 @@ const toast = useToast()
 const name = ref('')
 const color = ref('')
 const icon = ref('')
-const orientation =ref('')
+const orientation = ref('')
 const previewUrl = ref('')
 const isSubmitting = ref(false)
-
 
 async function addRoom() {
   if (isSubmitting.value) return
@@ -58,7 +79,7 @@ async function addRoom() {
 
     const response = await $fetch('/api/rooms/', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (response.status === 201) {
@@ -70,17 +91,19 @@ async function addRoom() {
 
       toast.add({
         title: 'Successfully created room',
-        color: 'success'
+        color: 'success',
       })
       navigateTo('/rooms')
     }
-  } catch (e) {
+  }
+  catch (e) {
     toast.add({
       title: 'Error creating a room',
-      color: 'error'
+      color: 'error',
     })
     console.error(e)
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 }

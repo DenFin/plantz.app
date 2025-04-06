@@ -7,25 +7,48 @@
       <Icon name="heroicons:chevron-right" />
       <NuxtLink to="/plants"><p class="font-bold">Plants</p></NuxtLink>
       <Icon name="heroicons:chevron-right" />
-      <p class="font-bold">Add a plant</p>
+      <p class="font-bold">
+        Add a plant
+      </p>
     </div>
 
-    <form @submit.prevent="addPlant" class="bg-white shadow-xl p-8 rounded-xl flex flex-col gap-4">
+    <form
+      class="bg-white shadow-xl p-8 rounded-xl flex flex-col gap-4"
+      @submit.prevent="addPlant"
+    >
       <div class="flex flex-col gap-1">
         <BaseLabel text="Name" />
-        <UInput v-model="name" placeholder="Plant name" />
+        <UInput
+          v-model="name"
+          placeholder="Plant name"
+        />
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Species" />
-        <UInput v-model="species" placeholder="Plant species" />
+        <UInput
+          v-model="species"
+          placeholder="Plant species"
+        />
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Location" />
-        <UInput v-model="location" placeholder="Where is the plant located?" />
+        <UInput
+          v-model="location"
+          placeholder="Where is the plant located?"
+        />
       </div>
-      <div v-if="rooms" class="flex flex-col gap-1">
+      <div
+        v-if="rooms"
+        class="flex flex-col gap-1"
+      >
         <BaseLabel text="Room" />
-        <USelect :items="rooms" v-model="room"  label-key="name" value-key="id" placeholder="Where is the plant located?" />
+        <USelect
+          v-model="room"
+          :items="rooms"
+          label-key="name"
+          value-key="id"
+          placeholder="Where is the plant located?"
+        />
       </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Photo" />
@@ -36,11 +59,22 @@
           :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
           @input="handleFileChange"
         />
-        <div v-if="previewUrl" class="mt-2">
-          <NuxtImg :src="previewUrl" alt="Preview" class="w-32 h-32 object-cover rounded-lg" />
+        <div
+          v-if="previewUrl"
+          class="mt-2"
+        >
+          <NuxtImg
+            :src="previewUrl"
+            alt="Preview"
+            class="w-32 h-32 object-cover rounded-lg"
+          />
         </div>
       </div>
-      <UButton type="submit" :loading="isSubmitting" class="self-start">
+      <UButton
+        type="submit"
+        :loading="isSubmitting"
+        class="self-start"
+      >
         {{ isSubmitting ? 'Creating plant...' : 'Submit' }}
       </UButton>
     </form>
@@ -62,13 +96,13 @@ const { many: rooms, fetchMany: fetchRooms } = useRooms()
 
 fetchRooms()
 
-
 function handleFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     selectedFile.value = input.files[0]
     previewUrl.value = URL.createObjectURL(input.files[0])
-  } else {
+  }
+  else {
     selectedFile.value = null
     previewUrl.value = ''
   }
@@ -90,7 +124,7 @@ async function addPlant() {
 
     const response = await $fetch('/api/plants/', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (response.status === 201) {
@@ -102,17 +136,19 @@ async function addPlant() {
 
       toast.add({
         title: 'Successfully created plant',
-        color: 'success'
+        color: 'success',
       })
       navigateTo('/plants')
     }
-  } catch (e) {
+  }
+  catch (e) {
     toast.add({
       title: 'Error creating a plant',
-      color: 'error'
+      color: 'error',
     })
     console.error(e)
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 }

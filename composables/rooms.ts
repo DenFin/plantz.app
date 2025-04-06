@@ -1,30 +1,29 @@
 export const useRooms = () => {
+  const many: Ref<Array<Room> | null> = useState('many', () => null)
+  const count: Ref<number | null> = useState('count', () => null)
 
-    const many: Ref<Array<Room> | null> = useState('many', () => null)
-    const count: Ref<number | null> = useState('count', () => null)
-
-    async function fetchMany() {
-        try {
-            const response = await $fetch('/api/rooms', { lazy: true });
-            count.value = response.data.length
-            many.value = response.data;
-            return response
-        } catch(e) {
-            console.error(e)
-        }
+  async function fetchMany() {
+    try {
+      const response = await $fetch('/api/rooms', { lazy: true })
+      count.value = response.data.length
+      many.value = response.data
+      return response
     }
-
-    function getRoomById(roomId: string) {
-        if(many.value?.length > 0) {
-            return many.value.find(room => room.id === roomId)
-        }
+    catch (e) {
+      console.error(e)
     }
+  }
 
-    return {
-        many,
-        count,
-        fetchMany,
-        getRoomById
+  function getRoomById(roomId: string) {
+    if (many.value?.length > 0) {
+      return many.value.find(room => room.id === roomId)
     }
+  }
 
+  return {
+    many,
+    count,
+    fetchMany,
+    getRoomById,
+  }
 }

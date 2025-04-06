@@ -1,25 +1,24 @@
 export const usePlants = () => {
+  const many = useState('many', () => null)
 
-    const many = useState('many', () => null)
-
-    async function fetchMany() {
-        try {
-            const response = await $fetch('/api/plants' , { lazy: true });
-            many.value = response.data;
-            return response
-        } catch(e) {
-            console.error(e)
-        }
+  async function fetchMany() {
+    try {
+      const response = await $fetch('/api/plants', { lazy: true })
+      many.value = response.data
+      return response
     }
-
-    function getPlantById(id: number) {
-      return many.value?.find(elem => elem.id === id)
+    catch (e) {
+      console.error(e)
     }
+  }
 
-    return {
-        many,
-        fetchMany,
-        getPlantById
-    }
+  function getPlantById(id: number) {
+    return many.value?.find(elem => elem.id === id)
+  }
 
+  return {
+    many,
+    fetchMany,
+    getPlantById,
+  }
 }

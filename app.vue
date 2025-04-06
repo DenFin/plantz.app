@@ -1,6 +1,6 @@
 <template>
   <div class="bg-emerald-50 text-gray-800 dark:text-gray-800 min-h-screen">
-    <UApp :toaster="{ position: 'bottom-center'}">
+    <UApp :toaster="{ position: 'bottom-center' }">
       <TheHeader />
       <BaseContainer class="pt-20 pb-40">
         <NuxtPage />

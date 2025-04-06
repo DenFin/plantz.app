@@ -1,37 +1,35 @@
-
-
 export const useNotes = () => {
+  const many = useState('many', () => null)
+  const recent = useState('recent', () => null)
 
-    const many = useState('many', () => null)
-    const recent = useState('recent', () => null)
-
-    async function fetchMany() {
-        try {
-            const response = await $fetch('/api/notes', { lazy: true });
-            console.log('response.data.length',response.data.length)
-            many.value = response.data;
-            return response
-        } catch(e) {
-            console.error(e)
-        }
+  async function fetchMany() {
+    try {
+      const response = await $fetch('/api/notes', { lazy: true })
+      console.log('response.data.length', response.data.length)
+      many.value = response.data
+      return response
     }
-
-    async function fetchRecent() {
-        try {
-            const response = await $fetch('/api/notes/recent', { lazy: true });
-            console.log('response.data.length',response.data.length)
-            recent.value = response.data;
-            return response
-        } catch(e) {
-            console.error(e)
-        }
+    catch (e) {
+      console.error(e)
     }
+  }
 
-    return {
-        many,
-        recent,
-        fetchMany,
-        fetchRecent
+  async function fetchRecent() {
+    try {
+      const response = await $fetch('/api/notes/recent', { lazy: true })
+      console.log('response.data.length', response.data.length)
+      recent.value = response.data
+      return response
     }
+    catch (e) {
+      console.error(e)
+    }
+  }
 
+  return {
+    many,
+    recent,
+    fetchMany,
+    fetchRecent,
+  }
 }

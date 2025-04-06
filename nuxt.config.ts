@@ -1,9 +1,19 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt', '@nuxt/eslint'],
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt'],
   css: ['~/assets/css/main.css'],
+  compatibilityDate: '2024-11-01',
+  vite: {
+    server: {
+      allowedHosts: ['plantz.app.local'],
+    },
+  },
+  eslint: {
+    config: {
+      stylistic: true,
+    },
+  },
   pwa: {
     client: {
       installPrompt: true,
@@ -18,9 +28,4 @@ export default defineNuxtConfig({
       type: 'module',
     },
   },
-  vite: {
-    server: {
-      allowedHosts: ["plantz.app.local"]
-    }
-  }
 })
