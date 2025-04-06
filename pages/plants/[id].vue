@@ -35,8 +35,15 @@
               <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p></div>
           </BaseCard>
           <BaseCard v-for="note in plant.data[0].notes">
-            <p class="text-xs">{{ formatDate(note.created_at)}}</p>
-            <h2 class="font-bold">{{ note.content }}</h2>
+            <div class="flex">
+              <div class="basis-full flex justify-center flex-col">
+                <p class="text-xs">{{ formatDate(note.created_at) }}</p>
+                <h2 class="font-bold">{{ note.content }}</h2>
+              </div>
+              <figure v-if="!!getPhotoAttachedToNote(note.id)?.url"class="basis-1/6 aspect-square overflow-hidden rounded-lg">
+                <img  class="h-full w-full object-cover" :src="getPhotoAttachedToNote(note.id)?.url" alt="">
+              </figure>
+            </div>
           </BaseCard>
           <div>
             <UModal v-model:open="isNoteModalOpen">
@@ -308,14 +315,17 @@ const lightboxPhotoUrl = computed<string>(() => {
 const isNoteModalOpen = ref(false)
 const note = ref('')
 async function insertNote() {
-
   try {
+    const formData = new FormData()
+    formData.append('plant_id', id)
+    formData.append('note', note.value)
+    if (selectedFile.value) {
+      formData.append('photo', selectedFile.value)
+    }
+    console.log('Uploading photo:', formData)
     const response = await $fetch('/api/notes', {
       method: 'POST',
-      body: {
-        plant_id: id,
-        note: note.value,
-      },
+      body: formData,
       onResponse: (response) => {
         toast.add({
           title: 'Successfully inserted note.',
@@ -395,4 +405,12 @@ async function editPlant() {
     console.error(error)
   }
 }
+
+function getPhotoAttachedToNote(noteId: string) {
+  console.log('getPhotoAttachedToNote:', noteId)
+  const photo = plant.value.data[0].photos.find((photo) => photo.note_id === noteId)
+  console.log('getPhotoAttachedToNote:', photo)
+  return photo
+}
+
 </script>

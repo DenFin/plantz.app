@@ -1,5 +1,5 @@
 <template>
-  <article class="shadow-lg rounded-lg overflow-hidden">
+  <article class="shadow-lg rounded-lg overflow-hidden h-full">
     <header>
       <slot name="image" />
     </header>

@@ -5,7 +5,7 @@ import formidable from 'formidable'
 import { readFile } from 'fs/promises'
 import { database, queryDatabase } from '../../utils/db'
 import { createMinioClient } from '../../utils/minio'
-import { log } from 'console'
+import consola from 'consola'
 
 const router = createRouter()
 
@@ -49,7 +49,7 @@ router.get(
 
             return { status: 200, data: plants };
         } catch (error) {
-            console.error('Error handling plants:', error);
+            consola.error('Error handling plants:', error);
             return { error: 'Failed to fetch plants' };
         }
     }),
@@ -61,7 +61,7 @@ router.get(
     defineEventHandler(async (event: H3Event) => {
         try {
             const id = getRouterParam(event, 'id')
-            console.log('Fetching plant details for ID:', id)
+            consola.info('Fetching plant details for ID:', id)
 
             const query = `
                 SELECT
@@ -88,11 +88,10 @@ router.get(
 
 
             const plants = await queryDatabase(query, [id]);
-            console.log(plants);
-            console.log('Database response:', plants)
+            // TODO: Add logging for retrieving data from DB
 
             if (!plants || plants.length === 0) {
-                console.log('No plant found with ID:', id)
+                consola.info('No plant found with ID:', id)
                 return { status: 404, error: 'Plant not found' };
             }
 
@@ -115,10 +114,10 @@ router.get(
                 plants[0].photos = [];
             }
 
-            console.log('Returning plant with photos:', plants[0].photos.length)
+            consola.info('Returning plant with photos:', plants[0].photos.length)
             return { status: 200, data: plants };
         } catch (error) {
-            console.error('Error fetching plant:', error);
+            consola.error('Error fetching plant:', error);
             return { error: 'Failed to fetch plant', status: 500 };
         }
     }),
@@ -130,15 +129,15 @@ router.post(
     defineEventHandler(async (event: H3Event) => {
         try {
             const id = getRouterParam(event, 'id')
-            console.log('Processing photo upload for plant:', id)
+            consola.info('Processing photo upload for plant:', id)
 
             const form = formidable({});
             const [fields, files] = await form.parse(event.node.req);
 
-            console.log('Received files:', files)
+            consola.info('Received files:', files)
 
             if (!files.photo?.[0]) {
-                console.error('No photo file found in request')
+                consola.error('No photo file found in request')
                 return { error: 'No photo provided', status: 400 };
             }
 
@@ -146,11 +145,11 @@ router.post(
             const client = await database();
             try {
                 await client.query('BEGIN');
-                console.log('Started database transaction')
+                consola.info('Started database transaction')
 
                 const file = files.photo[0];
                 const fileBuffer = await readFile(file.filepath);
-                console.log('Read file buffer, size:', fileBuffer.length)
+                consola.info('Read file buffer, size:', fileBuffer.length)
 
                 // For now, using a placeholder user ID until auth is implemented
                 const userId = 'default-user';
@@ -162,7 +161,7 @@ router.post(
                     file.mimetype || 'image/jpeg',
                     userId
                 );
-                console.log('Uploaded to MinIO, objectKey:', objectKey)
+                consola.info('Uploaded to MinIO, objectKey:', objectKey)
 
                 // Create photo record
                 const createPhotoQuery = `
@@ -171,20 +170,20 @@ router.post(
                     RETURNING id;
                 `;
                 const result = await client.query(createPhotoQuery, [id, objectKey]);
-                console.log('Created photo record:', result.rows[0])
+                consola.info('Created photo record:', result.rows[0])
 
                 await client.query('COMMIT');
                 return { status: 201, data: { id: result.rows[0].id } };
 
             } catch (error) {
-                console.error('Transaction error:', error)
+                consola.error('Transaction error:', error)
                 await client.query('ROLLBACK');
                 throw error;
             } finally {
                 await client.end();
             }
         } catch (error) {
-            console.error('Error uploading photo:', error);
+            consola.error('Error uploading photo:', error);
             return { error: 'Failed to upload photo', status: 500 };
         }
     })
@@ -222,7 +221,7 @@ router.delete(
                 try {
                     await minioClient.removeObject(bucketName, objectKey);
                 } catch (error) {
-                    console.error('Error deleting from Minio:', error);
+                    consola.error('Error deleting from Minio:', error);
                     // Continue with database deletion even if Minio deletion fails
                 }
 
@@ -243,7 +242,7 @@ router.delete(
                 await client.end();
             }
         } catch (error) {
-            console.error('Error deleting photo:', error);
+            consola.error('Error deleting photo:', error);
             return { error: 'Failed to delete photo', status: 500 };
         }
     })
@@ -254,7 +253,7 @@ router.post(
     '/',
     defineEventHandler(async (event: H3Event) => {
         try {
-            console.log('Creating plant')
+            consola.info('Creating plant')
             const form = formidable({});
             const [fields, files] = await form.parse(event.node.req);
 
@@ -316,7 +315,7 @@ router.post(
                 await client.end();
             }
         } catch (error) {
-            console.error('Error creating plant:', error);
+            consola.error('Error creating plant:', error);
             return { error: 'Failed to create plant', status: 500 };
         }
     }),
@@ -332,7 +331,7 @@ router.delete(
 
             return { status: 200, data: plants };
         } catch (error) {
-            console.error('Error handling plants:', error);
+            consola.error('Error handling plants:', error);
             return { error: 'Failed to fetch plants' };
         }
     }),
