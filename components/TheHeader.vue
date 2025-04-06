@@ -1,5 +1,10 @@
 <script setup lang="ts">
-const navItems = [
+type NavItem = {
+  text: string
+  to: string
+}
+
+const navItems: Array<NavItem> = [
   {
     text: 'Dashboard',
     to: '/',
@@ -24,7 +29,10 @@ const navItems = [
       >plantz.app</NuxtLink>
       <nav>
         <ul class="flex gap-4">
-          <li v-for="(item, index) in navItems">
+          <li
+            v-for="(item, index) in navItems"
+            :key="`nav-item-${index}`"
+          >
             <NuxtLink
               active-class="font-bold"
               :to="item.to"

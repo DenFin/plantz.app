@@ -4,7 +4,7 @@ export const useRooms = () => {
 
   async function fetchMany() {
     try {
-      const response = await $fetch('/api/rooms', { lazy: true })
+      const response = await $fetch<ApiResponse<Room[]>>('/api/rooms')
       count.value = response.data.length
       many.value = response.data
       return response
@@ -15,7 +15,7 @@ export const useRooms = () => {
   }
 
   function getRoomById(roomId: string) {
-    if (many.value?.length > 0) {
+    if (many.value && many.value?.length > 0) {
       return many.value.find(room => room.id === roomId)
     }
   }
