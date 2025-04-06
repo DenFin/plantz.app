@@ -170,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMagicKeys } from '@vueuse/core'
+import {useMagicKeys} from '@vueuse/core'
 
 const route = useRoute()
 const toast = useToast()
@@ -407,10 +407,7 @@ async function editPlant() {
 }
 
 function getPhotoAttachedToNote(noteId: string) {
-  console.log('getPhotoAttachedToNote:', noteId)
-  const photo = plant.value.data[0].photos.find((photo) => photo.note_id === noteId)
-  console.log('getPhotoAttachedToNote:', photo)
-  return photo
+  return plant.value.data[0].photos.find((photo) => photo.note_id === noteId)
 }
 
 </script>

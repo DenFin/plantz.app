@@ -1,30 +1,24 @@
+
 import type { H3Event } from 'h3'
-import { defineEventHandler } from 'h3'
-import { uploadFile } from '../../../../utils/minio'
+import {defineEventHandler, getRouterParam} from 'h3'
+import { uploadFile } from '~/server/utils/minio'
 import formidable from 'formidable'
 import { readFile } from 'fs/promises'
-import { database } from '../../../../utils/db'
+import { database } from '~/server/utils/db'
+import consola from "consola";
 
 export default defineEventHandler(async (event: H3Event) => {
-    // Handle POST request for photo upload
-    if (event.method !== 'POST') {
-        return { error: 'Method not allowed', status: 405 }
-    }
-
     try {
-        const id = event.context.params?.id
-        if (!id) {
-            return { error: 'Plant ID is required', status: 400 }
-        }
-        console.log('Processing photo upload for plant:', id)
+        const id = getRouterParam(event, 'id')
+        consola.info('Processing photo upload for plant:', id)
 
         const form = formidable({});
         const [fields, files] = await form.parse(event.node.req);
 
-        console.log('Received files:', files)
+        consola.info('Received files:', files)
 
         if (!files.photo?.[0]) {
-            console.error('No photo file found in request')
+            consola.error('No photo file found in request')
             return { error: 'No photo provided', status: 400 };
         }
 
@@ -32,11 +26,11 @@ export default defineEventHandler(async (event: H3Event) => {
         const client = await database();
         try {
             await client.query('BEGIN');
-            console.log('Started database transaction')
+            consola.info('Started database transaction')
 
             const file = files.photo[0];
             const fileBuffer = await readFile(file.filepath);
-            console.log('Read file buffer, size:', fileBuffer.length)
+            consola.info('Read file buffer, size:', fileBuffer.length)
 
             // For now, using a placeholder user ID until auth is implemented
             const userId = 'default-user';
@@ -48,7 +42,7 @@ export default defineEventHandler(async (event: H3Event) => {
                 file.mimetype || 'image/jpeg',
                 userId
             );
-            console.log('Uploaded to MinIO, objectKey:', objectKey)
+            consola.info('Uploaded to MinIO, objectKey:', objectKey)
 
             // Create photo record
             const createPhotoQuery = `
@@ -57,20 +51,20 @@ export default defineEventHandler(async (event: H3Event) => {
                 RETURNING id;
             `;
             const result = await client.query(createPhotoQuery, [id, objectKey]);
-            console.log('Created photo record:', result.rows[0])
+            consola.info('Created photo record:', result.rows[0])
 
             await client.query('COMMIT');
             return { status: 201, data: { id: result.rows[0].id } };
 
         } catch (error) {
-            console.error('Transaction error:', error)
+            consola.error('Transaction error:', error)
             await client.query('ROLLBACK');
             throw error;
         } finally {
             await client.end();
         }
     } catch (error) {
-        console.error('Error uploading photo:', error);
+        consola.error('Error uploading photo:', error);
         return { error: 'Failed to upload photo', status: 500 };
     }
 }) 
