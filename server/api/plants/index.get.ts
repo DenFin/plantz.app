@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import consola from 'consola'
-import { createMinioClient } from '~/server/utils/minio'
-import { queryDatabase } from '~/server/utils/db'
+import { createMinioClient } from '~~/server/utils/minio'
+import { queryDatabase } from '~~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {

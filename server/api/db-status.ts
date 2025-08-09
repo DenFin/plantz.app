@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { database } from '~/server/utils/db'
+import { database } from '~~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {

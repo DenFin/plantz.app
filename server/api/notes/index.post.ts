@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import { defineEventHandler } from 'h3'
 import formidable from 'formidable'
 import consola from 'consola'
-import { uploadFile } from '~/server/utils/minio'
+import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
   console.info('Creating note')

@@ -3,6 +3,7 @@
     v-if="plant && plant.data && plant.data[0]"
     class="flex flex-col gap-8"
   >
+    <!-- Breadcrumbs -->
     <section id="breadcrumbs">
       <div class="flex justify-between items-center text-gray-800">
         <div class="flex gap-1  items-center">
@@ -29,6 +30,7 @@
         </div>
       </div>
     </section>
+    <!-- Content -->
     <section>
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="self-start w-full lg:basis-1/2 flex flex-col gap-3">

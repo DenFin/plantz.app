@@ -1,8 +1,8 @@
 import type { H3Event } from 'h3'
 import { defineEventHandler, getRouterParam } from 'h3'
 import consola from 'consola'
-import { queryDatabase } from '~/server/utils/db'
-import { createMinioClient } from '~/server/utils/minio'
+import { queryDatabase } from '~~/server/utils/db'
+import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
