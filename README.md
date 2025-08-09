@@ -2,6 +2,17 @@
 
 Plantz is a personal project that helps me to overview all my houseplants, track their progress and get reminded to take care of them.
 
+## Features
+- Create plants
+- Take photos of plants
+- Add notes to plants
+
+## Build with
+- Nuxt 3 
+- Postgres
+- Minio Object Storage
+- Docker
+
 ## Database migrations
 
 ```bash

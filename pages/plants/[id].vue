@@ -203,12 +203,15 @@
     <!-- PlantLightbox -->
     <div
       v-if="showLightbox"
-      class="fixed z-40 bg-black/80 top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center p-4 xl:p-20"
+      class="fixed z-40 bg-black/80 backdrop-blur-xs top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center p-4 xl:p-20"
       @click.self="closeLightbox"
     >
-      <div class="h-full max-h-screen relative flex items-center">
+      <div
+        class="h-full max-h-screen relative flex items-center"
+        @click.self="closeLightbox"
+      >
         <div class="absolute flex w-full justify-between">
-          <div class="bg-white p-1 flex rounded-lg  -translate-x-full">
+          <div class="bg-white p-1 flex rounded-lg  ">
             <UIcon
               name="i-heroicons:chevron-left"
               size="xs"
@@ -217,7 +220,7 @@
               @click="previousPhoto"
             />
           </div>
-          <div class="bg-white p-1 flex rounded-lg translate-x-full">
+          <div class="bg-white p-1 flex rounded-lg">
             <UIcon
               name="i-heroicons:chevron-right"
               size="xs"

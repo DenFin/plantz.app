@@ -1,10 +1,10 @@
 export const useNotes = () => {
-  const many = useState('many', () => null)
-  const recent = useState('recent', () => null)
+  const many: Ref<Note[] | null> = useState('many', () => null)
+  const recent: Ref<Note[] | null> = useState('recent', () => null)
 
   async function fetchMany() {
     try {
-      const response = await $fetch('/api/notes', { lazy: true })
+      const response: ApiResponse<Note[]> = await $fetch<ApiResponse<Note[]>>('/api/notes')
       console.log('response.data.length', response.data.length)
       many.value = response.data
       return response
@@ -16,7 +16,7 @@ export const useNotes = () => {
 
   async function fetchRecent() {
     try {
-      const response = await $fetch('/api/notes/recent', { lazy: true })
+      const response: ApiResponse<Note[]> = await $fetch<ApiResponse<Note[]>>('/api/notes/recent')
       console.log('response.data.length', response.data.length)
       recent.value = response.data
       return response

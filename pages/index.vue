@@ -13,71 +13,7 @@
           Dashboard
         </p>
       </div>
-
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <BaseCard v-if="false">
-          <BaseHeadline
-            element="h2"
-            text="System Status"
-            class="mb-4"
-          />
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <Icon
-                v-if="dbStatus === 'connected'"
-                name="heroicons:check-circle"
-                class="w-6 h-6 text-emerald-500"
-              />
-              <Icon
-                v-if="dbStatus === 'error'"
-                name="heroicons:x-circle"
-                class="w-6 h-6 text-red-500"
-              />
-              <span class="font-medium">Database Connection</span>
-              <UBadge
-                v-if="dbStatus === 'connected'"
-                color="success"
-                variant="subtle"
-              >
-                Connected
-              </UBadge>
-              <UBadge
-                v-if="dbStatus === 'error'"
-                color="danger"
-                variant="subtle"
-              >
-                Error
-              </UBadge>
-            </div>
-            <div class="flex items-center gap-2">
-              <Icon
-                v-if="minioStatus === 'connected'"
-                name="heroicons:check-circle"
-                class="w-6 h-6 text-emerald-500"
-              />
-              <Icon
-                v-if="minioStatus === 'error'"
-                name="heroicons:x-circle"
-                class="w-6 h-6 text-red-500"
-              />
-              <span class="font-medium">Minio Connection</span>
-              <UBadge
-                v-if="minioStatus === 'connected'"
-                color="success"
-                variant="subtle"
-              >
-                Connected
-              </UBadge>
-              <UBadge
-                v-if="minioStatus === 'error'"
-                color="danger"
-                variant="subtle"
-              >
-                Error
-              </UBadge>
-            </div>
-          </div>
-        </BaseCard>
         <BaseCard v-if="plantCount">
           <div class="flex items-center flex-col gap-4">
             <div class="bg-emerald-100 p-4 rounded-full flex">
@@ -144,7 +80,10 @@
         <h2 class="font-bold text-xl mb-3">
           Recent notes
         </h2>
-        <div class="flex flex-col gap-3">
+        <div
+          v-if="recentNotes.length"
+          class="flex flex-col gap-3"
+        >
           <BaseCard
             v-for="note in recentNotes"
             :key="note.id"
@@ -167,12 +106,29 @@
             </p>
           </BaseCard>
         </div>
+        <div
+          v-else
+          class="bg-emerald-200 rounded-lg p-4"
+        >
+          <p>You currently do not have any recent notes. Go to your plants and take a note!</p>
+          <nuxt-link
+            to="/plants"
+            class="block mt-4 flex items-center"
+          >
+            <Icon name="material-symbols:chevron-right-rounded" />
+            <span class="font-bold">Go to plants</span>
+          </nuxt-link>
+        </div>
       </div>
+
       <div v-if="recentPhotos">
         <h2 class="font-bold text-xl mb-3">
           Recent photos
         </h2>
-        <div class="grid grid-cols-3 gap-3">
+        <div
+          v-if="recentPhotos.length"
+          class="grid grid-cols-3 gap-3"
+        >
           <figure
             v-for="photo in recentPhotos"
             :key="photo.id"
@@ -184,22 +140,29 @@
             />
           </figure>
         </div>
+        <div
+          v-else
+          class="bg-emerald-200 rounded-lg p-4"
+        >
+          <p>You currently do not have any recent photos. Go to your plants and take a photos!</p>
+          <nuxt-link
+            to="/plants"
+            class="block mt-4 flex items-center"
+          >
+            <Icon name="material-symbols:chevron-right-rounded" />
+            <span class="font-bold">Go to plants</span>
+          </nuxt-link>
+        </div>
       </div>
     </section>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { formatDate } from '~/utils/utils'
-import { usePhotos } from '~/composables/photos'
-
-const dbStatus = ref('')
-const minioStatus = ref('')
-
+<script setup lang="ts">
+// TODO: Refactor to composables
 const { data: plantCount } = useFetch('/api/plants/count', { lazy: true })
 const { data: photosCount } = useFetch('/api/plants/photos', { lazy: true })
-const { data: notes } = useFetch('/api/notes', { lazy: true })
+const { data: notes } = useFetch<ApiResponse<Plant[]>>('/api/notes', { lazy: true })
 
 const { getPlantById, fetchMany: fetchPlants } = usePlants()
 fetchPlants()
@@ -212,29 +175,4 @@ fetchRecentNotes()
 
 const { recent: recentPhotos, fetchRecent: fetchRecentPhotos } = usePhotos()
 fetchRecentPhotos()
-
-async function fetchDbStatus() {
-  try {
-    const response = await $fetch('/api/db-status')
-    dbStatus.value = response.status
-  }
-  catch (error) {
-    dbStatus.value = 'error'
-  }
-}
-
-async function fetchMinioStatus() {
-  try {
-    const response = await $fetch('/api/minio-status')
-    minioStatus.value = response.status
-  }
-  catch (error) {
-    minioStatus.value = 'error'
-  }
-}
-
-onMounted(() => {
-  fetchDbStatus()
-  fetchMinioStatus()
-})
 </script>

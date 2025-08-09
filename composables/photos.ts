@@ -1,10 +1,10 @@
 export const usePhotos = () => {
-  const many = useState('many', () => null)
-  const recent = useState('recentPhotos', () => null)
+  const many: Ref<Photo[] | null> = useState('many', () => null)
+  const recent: Ref<Photo[] | null> = useState('recentPhotos', () => null)
 
   async function fetchMany() {
     try {
-      const response = await $fetch('/api/photos', { lazy: true })
+      const response = await $fetch<ApiResponse<Photo[]>>('/api/photos')
       console.log('response.data.length', response.data.length)
       many.value = response.data
       return response
@@ -16,7 +16,7 @@ export const usePhotos = () => {
 
   async function fetchRecent() {
     try {
-      const response = await $fetch('/api/photos/recent', { lazy: true })
+      const response = await $fetch<ApiResponse<Photo[]>>('/api/photos/recent')
       console.log('response.data.length', response.data.length)
       recent.value = response.data
       return response

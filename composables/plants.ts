@@ -1,9 +1,9 @@
 export const usePlants = () => {
-  const many = useState('many', () => null)
+  const many: Ref<Plant[] | null> = useState('many', () => null)
 
   async function fetchMany() {
     try {
-      const response = await $fetch('/api/plants', { lazy: true })
+      const response = await $fetch<ApiResponse<Plant[]>>('/api/plants')
       many.value = response.data
       return response
     }
@@ -12,7 +12,7 @@ export const usePlants = () => {
     }
   }
 
-  function getPlantById(id: number) {
+  function getPlantById(id: string) {
     return many.value?.find(elem => elem.id === id)
   }
 

@@ -20,3 +20,18 @@ interface Room {
   name: string
   icon: string
 }
+
+interface Note {
+  id: string
+  plant_id: string
+  content: string
+  created_at: string
+}
+
+interface Photo {
+  id: string
+  plant_id: string
+  image_url: string
+  taken_at: string
+  note_id: string
+}
