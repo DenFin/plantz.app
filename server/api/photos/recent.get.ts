@@ -6,7 +6,7 @@ export default defineEventHandler(async () => {
   try {
     const query = `
             SELECT * FROM photos 
-            WHERE taken_at >= (CURRENT_TIMESTAMP - INTERVAL '3 days')
+            WHERE taken_at >= (CURRENT_TIMESTAMP - INTERVAL '31 days')
             ORDER BY taken_at DESC`
 
     const plants = await queryDatabase(query)

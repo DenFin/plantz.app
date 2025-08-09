@@ -5,6 +5,7 @@
       <BaseContainer class="pt-20 pb-40">
         <NuxtPage />
       </BaseContainer>
+      <TheFooter />
     </UApp>
   </div>
 </template>
