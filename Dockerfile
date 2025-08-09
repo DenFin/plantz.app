@@ -9,8 +9,8 @@ WORKDIR /src
 # Build
 FROM base as build
 
-COPY --link package.json package-lock.json ./
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
 
 COPY --link . .
 

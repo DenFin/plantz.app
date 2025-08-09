@@ -1,0 +1,12 @@
+services:
+  plantz:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: plantz.app:latest
+    container_name: plantz.app
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
