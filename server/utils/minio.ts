@@ -3,7 +3,7 @@ import * as Minio from 'minio'
 
 export function createMinioClient() {
   return new Minio.Client({
-    endPoint: process.env.MINIO_HOST || '192.168.2.177',
+    endPoint: process.env.MINIO_HOST || '192.168.2.217',
     port: Number(process.env.MINIO_PORT) || 9000,
     useSSL: process.env.MINIO_USE_SSL === 'true',
     accessKey: process.env.MINIO_ACCESS_KEY || 'root',

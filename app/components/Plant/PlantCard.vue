@@ -48,7 +48,7 @@
             }"
           >
             <UButton
-              class="bg-gray-100 cursor-pointer"
+              class="bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 cursor-pointer"
               icon="heroicons:ellipsis-vertical"
               color="neutral"
               variant="solid"

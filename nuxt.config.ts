@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   compatibilityDate: '2024-11-01',
+  runtimeConfig: {
+    public: {
+      openRouterApiKey: process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY
+    },
+  },
   vite: {
     server: {
       allowedHosts: ['plantz.app.local'],
