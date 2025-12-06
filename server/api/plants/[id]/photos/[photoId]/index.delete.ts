@@ -1,21 +1,16 @@
 import type { H3Event } from 'h3'
-import { defineEventHandler } from 'h3'
-import { database } from '../../../../utils/db'
-import { createMinioClient } from '../../../../utils/minio'
+import { defineEventHandler, getRouterParam } from 'h3'
+import consola from 'consola'
+import { database } from '~~/server/utils/db'
+import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
-  // Handle DELETE request for photo deletion
-  if (event.method !== 'DELETE') {
-    return { error: 'Method not allowed', status: 405 }
-  }
-
   try {
-    const plantId = event.context.params?.id
-    const photoId = event.context.params?.photoId
+    const plantId = getRouterParam(event, 'plantId')
+    const photoId = getRouterParam(event, 'photoId')
 
-    if (!plantId || !photoId) {
-      return { error: 'Plant ID and Photo ID are required', status: 400 }
-    }
+    console.log('plantId', plantId)
+    console.log('photoId', photoId)
 
     // Start a database transaction
     const client = await database()
@@ -24,9 +19,9 @@ export default defineEventHandler(async (event: H3Event) => {
 
       // Get the photo details first
       const getPhotoQuery = `
-                SELECT image_url FROM photos 
-                WHERE id = $1 AND plant_id = $2;
-            `
+                    SELECT image_url FROM photos 
+                    WHERE id = $1 AND plant_id = $2;
+                `
       const photoResult = await client.query(getPhotoQuery, [photoId, plantId])
 
       if (photoResult.rows.length === 0) {
@@ -43,15 +38,15 @@ export default defineEventHandler(async (event: H3Event) => {
         await minioClient.removeObject(bucketName, objectKey)
       }
       catch (error) {
-        console.error('Error deleting from Minio:', error)
+        consola.error('Error deleting from Minio:', error)
         // Continue with database deletion even if Minio deletion fails
       }
 
       // Delete from database
       const deletePhotoQuery = `
-                DELETE FROM photos 
-                WHERE id = $1 AND plant_id = $2;
-            `
+                    DELETE FROM photos 
+                    WHERE id = $1 AND plant_id = $2;
+                `
       await client.query(deletePhotoQuery, [photoId, plantId])
 
       await client.query('COMMIT')
@@ -66,7 +61,7 @@ export default defineEventHandler(async (event: H3Event) => {
     }
   }
   catch (error) {
-    console.error('Error deleting photo:', error)
+    consola.error('Error deleting photo:', error)
     return { error: 'Failed to delete photo', status: 500 }
   }
 })

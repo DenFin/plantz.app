@@ -16,6 +16,7 @@
     "@nuxt/eslint": "1.8.0",
     "@nuxt/image": "1.11.0",
     "@nuxt/ui": "^3.3.0",
+    "@openrouter/sdk": "^0.1.27",
     "@types/pg": "^8.15.5",
     "@vite-pwa/nuxt": "1.0.4",
     "@vueuse/core": "^13.6.0",

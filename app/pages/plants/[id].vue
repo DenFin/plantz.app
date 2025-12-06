@@ -279,8 +279,19 @@
             />
           </div>
         </div>
-        <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2">
-          {{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}
+        <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2 flex items-center gap-3">
+          <span>{{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}</span>
+          <UButton
+            :loading="isAnalyzing"
+            :disabled="isAnalyzing"
+            icon="i-heroicons-sparkles"
+            color="primary"
+            variant="solid"
+            size="sm"
+            @click="analyzePhotoWithAI"
+          >
+            KI-Analyse
+          </UButton>
         </div>
         <NuxtImg
           class="h-auto max-h-full w-auto rounded-lg overflow-hidden"
@@ -288,6 +299,36 @@
         />
       </div>
     </div>
+    <!-- AI Analysis Modal -->
+    <UModal v-model:open="showAIAnalysisModal">
+      <template #content>
+        <div class="p-8 flex flex-col gap-4">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-primary" />
+            <h2 class="text-2xl font-bold">KI-Analyse</h2>
+          </div>
+          <div
+            v-if="aiAnalysis"
+            class="bg-gray-50 p-4 rounded-lg"
+          >
+            <p class="whitespace-pre-wrap">{{ aiAnalysis }}</p>
+          </div>
+          <div
+            v-else-if="aiAnalysisError"
+            class="bg-red-50 p-4 rounded-lg text-red-800"
+          >
+            <p>{{ aiAnalysisError }}</p>
+          </div>
+          <UButton
+            color="primary"
+            variant="solid"
+            @click="showAIAnalysisModal = false"
+          >
+            Schließen
+          </UButton>
+        </div>
+      </template>
+    </UModal>
     <!-- PlantEditModal -->
     <UModal v-model:open="showPlantEditModal">
       <UButton
@@ -604,6 +645,59 @@ const remindAt = ref(null)
 async function addReminder() {
   console.log('message', message.value)
   console.log('remindAt', remindAt.value)
+}
+
+const isAnalyzing = ref(false)
+const showAIAnalysisModal = ref(false)
+const aiAnalysis = ref('')
+const aiAnalysisError = ref('')
+
+async function analyzePhotoWithAI() {
+  if (!plant.value?.data?.[0]?.photos?.[lightboxPhotoIndex.value]) {
+    toast.add({
+      title: 'Kein Foto gefunden',
+      color: 'error',
+    })
+    return
+  }
+
+  const photo = plant.value.data[0].photos[lightboxPhotoIndex.value]
+  if (!photo.id) {
+    toast.add({
+      title: 'Foto-ID nicht gefunden',
+      color: 'error',
+    })
+    return
+  }
+
+  try {
+    isAnalyzing.value = true
+    aiAnalysisError.value = ''
+    aiAnalysis.value = ''
+    showAIAnalysisModal.value = true
+
+    const response = await $fetch(`/api/plants/${id}/photos/${photo.id}/analyze`, {
+      method: 'POST',
+    })
+
+    if (response?.data?.analysis) {
+      aiAnalysis.value = response.data.analysis
+    }
+    else {
+      aiAnalysisError.value = 'Keine Antwort von der KI erhalten'
+    }
+  }
+  catch (error: any) {
+    console.error('Error analyzing photo:', error)
+    aiAnalysisError.value = error?.data?.error || 'Fehler bei der KI-Analyse. Bitte versuchen Sie es erneut.'
+    toast.add({
+      title: 'Fehler bei der KI-Analyse',
+      color: 'error',
+    })
+  }
+  finally {
+    isAnalyzing.value = false
+  }
 }
 
 </script>
