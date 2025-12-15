@@ -37,8 +37,8 @@
 
       <template #default>
         <div class="flex justify-between">
-          <div><h3 class="font-bold text-md lg:text-lg">{{ plant.name }}</h3>
-            <p>{{ plant.species }}</p></div>
+          <div><h3 class="font-bold text-md lg:text-md line-clamp-1 pr-4">{{ plant.name }}</h3>
+            <p class="text-sm pr-4 line-clamp-1">{{ plant.species }}</p></div>
           <UPopover
             class="self-start"
             :content="{

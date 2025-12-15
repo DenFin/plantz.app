@@ -20,25 +20,17 @@
             Plants
           </p>
         </div>
-        <div>
-          <UInput
-            v-model="searchQuery"
-            color="primary"
-            placeholder="Search"
-          />
-        </div>
-        <div>
-          <USelect v-model="columnCount" :items="columnOptions" />
-        </div>
       </header>
-      <div :class="columnClasses">
-        
-        <PlantCard
-          v-for="plant in filteredPlants"
-          :key="plant.id"
-          :plant="plant"
-          class="block"
-        />
+      <div class="w-full">
+        <div v-for="(plantsInRoom, roomName) in groupedByRoomName" :key="roomName" class="mb-8">
+          <h2 class="text-xl font-bold mb-2">{{ roomName }}</h2>
+          <ul class="grid xl:grid-cols-6 gap-2">
+            <li v-for="plant in plantsInRoom" :key="plant.id">
+              <!-- beispielhafte Darstellung -->
+              <PlantCard :plant="plant" />
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
     <UButton
