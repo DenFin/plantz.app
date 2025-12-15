@@ -35,7 +35,7 @@
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.26.0",
   "devDependencies": {
     "@iconify-json/heroicons": "^1.2.2",
     "@iconify-json/heroicons-solid": "^1.2.1",
