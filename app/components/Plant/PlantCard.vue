@@ -56,8 +56,17 @@
             />
 
             <template #content>
-              <div class="p-2">
+              <div class="p-2 flex flex-col gap-2">
                 <UButton
+                  icon="roentgen:tomb"
+                  variant="ghost"
+                  color="primary"
+                  @click="buryPlant(plant.id)"
+                >Bury plant
+                </UButton>
+                <UButton
+                  icon="material-symbols:delete-outline-rounded"
+                  variant="ghost"
                   color="primary"
                   @click="deletePlant(plant.id)"
                 >Delete plant
@@ -90,6 +99,17 @@ function deletePlant(id: string) {
   try {
     return $fetch(`/api/plants/${id}`, {
       method: 'DELETE',
+    })
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+
+function buryPlant(id: string) {
+  try {
+    return $fetch(`/api/plants/${id}/bury`, {
+      method: 'POST',
     })
   }
   catch (e) {

@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
                     WHERE ph.plant_id = p.id
                     ORDER BY ph.taken_at DESC
                     LIMIT 1) as thumbnail
-            FROM plants p;
+            FROM plants p
+            WHERE p.status != 'dead';
         `
 
     const plants = await queryDatabase(query)
