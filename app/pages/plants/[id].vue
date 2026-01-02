@@ -49,7 +49,7 @@
               <USeparator />
               <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-1.5">
               <!-- Reminder -->
               <div>
                 <UModal v-model:open="isReminderModalOpen">
@@ -160,7 +160,7 @@
               </div>
               <figure
                 v-if="!!getPhotoAttachedToNote(note.id)?.url"
-                class="basis-1/6 aspect-square overflow-hidden rounded-lg"
+                class="basis-1/6 aspect-square overflow-hidden rounded-lg ml-2"
               >
                 <img
                   class="h-full w-full object-cover"
