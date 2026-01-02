@@ -22,13 +22,14 @@ export default defineEventHandler(async (event) => {
 
       // 1. Create the plant
       const createPlantQuery = `
-                    INSERT INTO plants (name, species, location, room_id)
-                    VALUES ($1, $2, $3, $4)
+                    INSERT INTO plants (name, species, parent_plant_id, location, room_id)
+                    VALUES ($1, $2, $3, $4, $5)
                     RETURNING id;
                 `
       const plantResult = await client.query(createPlantQuery, [
         fields.name[0],
         fields.species[0],
+        fields.parentPlant?.[0] ?? null,
         fields.location[0],
         fields.room[0],
       ])

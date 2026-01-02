@@ -34,121 +34,130 @@
     <section>
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="self-start w-full lg:basis-1/2 flex flex-col gap-3">
-          <BaseCard>
-            <h1 class="text-3xl font-bold mb-8">
-              {{ plant.data[0].name }}
-            </h1>
-            <div class="flex flex-col gap-2 mb-8">
-              <p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
-              <USeparator />
-              <p><span class="font-bold">Room: </span>{{ getRoomById(plant.data[0].room_id)?.name }}</p>
-              <USeparator />
-              <p><span class="font-bold">Room orientation: </span>{{ getRoomById(plant.data[0].room_id)?.orientation }}</p>
-              <USeparator />
-              <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
-              <USeparator />
-              <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
-            </div>
-            <div class="flex gap-1.5">
-              <!-- Reminder -->
-              <div>
-                <UModal v-model:open="isReminderModalOpen">
-                  <UButton
-                      leading-icon="material-symbols:alarm-outline-rounded"
-                      label="Add a reminder"
-                      color="primary"
-                      variant="solid"
-                  />
-                  <template #content>
-                    <form
-                        class="p-8 flex flex-col gap-3 items-start"
-                        @submit.prevent="addReminder"
-                    >
-                      <div class="flex flex-col gap-1 w-full">
-                        <BaseLabel text="Reminder" />
-                        <UTextarea
-                            v-model="message"
-                            class="w-full"
-                            placeholder="Enter a message"
-                        />
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <BaseLabel text="Remind at" />
-                        <UInput
-                            type="date"
-                            accept="image/*"
-                            class="w-full"
-                            v-model="remindAt"
-                        />
-
-                      </div>
-                      <UButton
-                          type="submit"
-                          leading-icon="material-symbols:note-outline-rounded"
-                          label="Save reminder"
-                          color="primary"
-                          variant="solid"
-                      />
-                    </form>
-                  </template>
-                </UModal>
+          <div class="flex gap-2 w-full">
+            <div :class="!!plant.data?.[0].parent_plant_id ? 'basis-2/3' : 'basis-full'">
+              <BaseCard clas="w-full">
+              <h1 class="text-3xl font-bold mb-8">
+                {{ plant.data[0].name }}
+              </h1>
+              <div class="flex flex-col gap-2 mb-8">
+                <p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
+                <USeparator />
+                <p><span class="font-bold">Room: </span>{{ getRoomById(plant.data[0].room_id)?.name }}</p>
+                <USeparator />
+                <p><span class="font-bold">Room orientation: </span>{{ getRoomById(plant.data[0].room_id)?.orientation }}</p>
+                <USeparator />
+                <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
+                <USeparator />
+                <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
               </div>
-              <!-- Note -->
-              <div>
-                <UModal v-model:open="isNoteModalOpen">
-                  <UButton
-                      leading-icon="material-symbols:note-outline-rounded"
-                      label="Add note"
-                      color="primary"
-                      variant="solid"
-                  />
-                  <template #content>
-                    <form
-                        class="p-8 flex flex-col gap-3 items-start"
-                        @submit.prevent="insertNote"
-                    >
-                      <div class="flex flex-col gap-1 w-full">
-                        <BaseLabel text="Note" />
-                        <UTextarea
-                            v-model="note"
-                            class="w-full"
-                            placeholder="Enter a note"
-                        />
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <BaseLabel text="Photo" />
-                        <UInput
-                            type="file"
-                            accept="image/*"
-                            class="w-full"
-                            :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
-                            @input="handleFileChange"
-                        />
-                        <div
-                            v-if="previewUrl"
-                            class="mt-2"
-                        >
-                          <NuxtImg
-                              :src="previewUrl"
-                              alt="Preview"
-                              class="w-32 h-32 object-cover rounded-lg"
+              <div class="flex gap-1.5">
+                <!-- Reminder -->
+                <div>
+                  <UModal v-model:open="isReminderModalOpen">
+                    <UButton
+                        leading-icon="material-symbols:alarm-outline-rounded"
+                        label="Add a reminder"
+                        color="primary"
+                        variant="solid"
+                    />
+                    <template #content>
+                      <form
+                          class="p-8 flex flex-col gap-3 items-start"
+                          @submit.prevent="addReminder"
+                      >
+                        <div class="flex flex-col gap-1 w-full">
+                          <BaseLabel text="Reminder" />
+                          <UTextarea
+                              v-model="message"
+                              class="w-full"
+                              placeholder="Enter a message"
                           />
                         </div>
-                      </div>
-                      <UButton
-                          type="submit"
-                          leading-icon="material-symbols:note-outline-rounded"
-                          label="Save note"
-                          color="primary"
-                          variant="solid"
-                      />
-                    </form>
-                  </template>
-                </UModal>
+                        <div class="flex flex-col gap-1">
+                          <BaseLabel text="Remind at" />
+                          <UInput
+                              type="date"
+                              accept="image/*"
+                              class="w-full"
+                              v-model="remindAt"
+                          />
+
+                        </div>
+                        <UButton
+                            type="submit"
+                            leading-icon="material-symbols:note-outline-rounded"
+                            label="Save reminder"
+                            color="primary"
+                            variant="solid"
+                        />
+                      </form>
+                    </template>
+                  </UModal>
+                </div>
+                <!-- Note -->
+                <div>
+                  <UModal v-model:open="isNoteModalOpen">
+                    <UButton
+                        leading-icon="material-symbols:note-outline-rounded"
+                        label="Add note"
+                        color="primary"
+                        variant="solid"
+                    />
+                    <template #content>
+                      <form
+                          class="p-8 flex flex-col gap-3 items-start"
+                          @submit.prevent="insertNote"
+                      >
+                        <div class="flex flex-col gap-1 w-full">
+                          <BaseLabel text="Note" />
+                          <UTextarea
+                              v-model="note"
+                              class="w-full"
+                              placeholder="Enter a note"
+                          />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <BaseLabel text="Photo" />
+                          <UInput
+                              type="file"
+                              accept="image/*"
+                              class="w-full"
+                              :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
+                              @input="handleFileChange"
+                          />
+                          <div
+                              v-if="previewUrl"
+                              class="mt-2"
+                          >
+                            <NuxtImg
+                                :src="previewUrl"
+                                alt="Preview"
+                                class="w-32 h-32 object-cover rounded-lg"
+                            />
+                          </div>
+                        </div>
+                        <UButton
+                            type="submit"
+                            leading-icon="material-symbols:note-outline-rounded"
+                            label="Save note"
+                            color="primary"
+                            variant="solid"
+                        />
+                      </form>
+                    </template>
+                  </UModal>
+                </div>
               </div>
+            </BaseCard>
             </div>
-          </BaseCard>
-          <BaseCard v-for="note in plant.data[0].notes">
+            <!-- PARENT PLANT --> 
+           <PlantCard class="basis-1/3" :plant="getPlantById(plant?.data?.[0]?.parent_plant_id)" v-if="plant.data?.[0].parent_plant_id" />
+          </div>
+      
+
+          <!-- NOTES -->
+          <BaseCard v-for="note in plant.data?.[0].notes">
             <div class="flex">
               <div class="basis-full flex justify-center flex-col">
                 <p class="text-xs">
@@ -170,6 +179,10 @@
               </figure>
             </div>
           </BaseCard>
+          <!-- CHILDREN-->
+           <div v-if="!!plant.children.length" class="grid grid-cols-3">
+            <PlantCard v-for="child in plant.children" class="basis-1/3" :plant="child" />
+           </div>
 
         </div>
         <div class="basis-full lg:basis-1/2">
@@ -397,12 +410,15 @@ const route = useRoute()
 const toast = useToast()
 const id = route.params.id
 
+
 const { data: plant, refresh } = await useFetch(`/api/plants/${id}`)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isUploading = ref(false)
 const showUploadModal = ref(false)
 
+const{ fetchMany: fetchPlants, getPlantById } = usePlants()
+fetchPlants()
 const { many: rooms, fetchMany: fetchRooms, getRoomById } = useRooms()
 fetchRooms()
 

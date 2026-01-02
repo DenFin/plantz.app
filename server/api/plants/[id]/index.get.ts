@@ -29,7 +29,10 @@ export default defineEventHandler(async (event: H3Event) => {
             GROUP BY p.id;
         `
 
+      const queryChildren = `SELECT * FROM plants WHERE parent_plant_id = $1`
+
     const plants = await queryDatabase(query, [id])
+    const children = await queryDatabase(queryChildren, [id])
     // TODO: Add logging for retrieving data from DB
 
     if (!plants || plants.length === 0) {
@@ -57,7 +60,7 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     consola.info('Returning plant with photos:', plants[0].photos.length)
-    return { status: 200, data: plants }
+    return { status: 200, data: plants, children }
   }
   catch (error) {
     consola.error('Error fetching plant:', error)

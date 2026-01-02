@@ -30,6 +30,19 @@
           placeholder="Plant species"
         />
       </div>
+      <div
+        v-if="plants"
+        class="flex flex-col gap-1"
+      >
+        <BaseLabel text="Parent Plant" />
+        <USelect
+          v-model="parentPlant"
+          :items="plants"
+          label-key="name"
+          value-key="id"
+          placeholder="Does the plant have a parent?"
+        />
+      </div>
       <div class="flex flex-col gap-1">
         <BaseLabel text="Location" />
         <UInput
@@ -86,14 +99,17 @@ const toast = useToast()
 
 const name = ref('')
 const species = ref('')
+const parentPlant = ref('')
 const location = ref('')
 const room = ref('')
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isSubmitting = ref(false)
 
+const { many: plants, fetchMany: fetchPlants } = usePlants()
 const { many: rooms, fetchMany: fetchRooms } = useRooms()
 
+fetchPlants()
 fetchRooms()
 
 function handleFileChange(event: Event) {
@@ -116,6 +132,7 @@ async function addPlant() {
     const formData = new FormData()
     formData.append('name', name.value)
     formData.append('species', species.value)
+    formData.append('parentPlant', parentPlant.value)
     formData.append('location', location.value)
     formData.append('room', room.value)
     if (selectedFile.value) {

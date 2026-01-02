@@ -1,5 +1,5 @@
 export const useRooms = () => {
-  const many: Ref<Array<Room> | null> = useState('many', () => null)
+  const many: Ref<Array<Room> | null> = useState('rooms', () => null)
   const count: Ref<number | null> = useState('count', () => null)
 
   async function fetchMany() {
