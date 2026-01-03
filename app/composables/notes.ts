@@ -1,11 +1,15 @@
+import { Logger } from '~/utils/logger'
+
 export function useNotes() {
   const many: Ref<Note[] | null> = useState('many', () => null)
   const recent: Ref<Note[] | null> = useState('recent', () => null)
 
   async function fetchMany() {
     try {
+      const logger = new Logger()
+      logger.info('GET', 'notes')
       const response: ApiResponse<Note[]> = await $fetch<ApiResponse<Note[]>>('/api/notes')
-      console.log('response.data.length', response.data.length)
+      logger.success('GET', 'notes', response)
       many.value = response.data
       return response
     }
@@ -16,8 +20,10 @@ export function useNotes() {
 
   async function fetchRecent() {
     try {
+      const logger = new Logger()
+      logger.info('GET', 'notes')
       const response: ApiResponse<Note[]> = await $fetch<ApiResponse<Note[]>>('/api/notes/recent')
-      console.log('response.data.length', response.data.length)
+      logger.success('GET', 'notes', response)
       recent.value = response.data
       return response
     }
