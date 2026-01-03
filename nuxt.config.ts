@@ -3,12 +3,12 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt', '@nuxt/eslint'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
-  compatibilityDate: '2024-11-01',
   runtimeConfig: {
     public: {
-      openRouterApiKey: process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY
+      openRouterApiKey: process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY,
     },
   },
+  compatibilityDate: '2024-11-01',
   vite: {
     server: {
       allowedHosts: ['plantz.app.local'],

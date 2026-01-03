@@ -21,7 +21,8 @@
             color="neutral"
             variant="outline"
             :icon="getRoom(plant.room_id)?.icon"
-          >{{ getRoom(plant.room_id)?.name }}
+          >
+            {{ getRoom(plant.room_id)?.name }}
           </UBadge>
         </figure>
         <div
@@ -37,8 +38,14 @@
 
       <template #default>
         <div class="flex justify-between">
-          <div><h3 class="font-bold text-md lg:text-md line-clamp-1 pr-4">{{ plant.name }}</h3>
-            <p class="text-sm pr-4 line-clamp-1">{{ plant.species }}</p></div>
+          <div>
+            <h3 class="font-bold text-md lg:text-md line-clamp-1 pr-4">
+              {{ plant.name }}
+            </h3>
+            <p class="text-sm pr-4 line-clamp-1">
+              {{ plant.species }}
+            </p>
+          </div>
           <UPopover
             class="self-start"
             :content="{
@@ -62,14 +69,16 @@
                   variant="ghost"
                   color="primary"
                   @click="buryPlant(plant.id)"
-                >Bury plant
+                >
+                  Bury plant
                 </UButton>
                 <UButton
                   icon="material-symbols:delete-outline-rounded"
                   variant="ghost"
                   color="primary"
                   @click="deletePlant(plant.id)"
-                >Delete plant
+                >
+                  Delete plant
                 </UButton>
               </div>
             </template>

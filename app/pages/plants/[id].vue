@@ -12,7 +12,9 @@
           </NuxtLink>
           <Icon name="heroicons:chevron-right" />
           <NuxtLink to="/plants">
-            <p class="font-bold">Plants</p>
+            <p class="font-bold">
+              Plants
+            </p>
           </NuxtLink>
           <Icon name="heroicons:chevron-right" />
           <p class="font-bold">
@@ -37,124 +39,122 @@
           <div class="flex gap-2 w-full">
             <div :class="!!plant.data?.[0].parent_plant_id ? 'basis-2/3' : 'basis-full'">
               <BaseCard clas="w-full">
-              <h1 class="text-3xl font-bold mb-8">
-                {{ plant.data[0].name }}
-              </h1>
-              <div class="flex flex-col gap-2 mb-8">
-                <p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
-                <USeparator />
-                <p><span class="font-bold">Room: </span>{{ getRoomById(plant.data[0].room_id)?.name }}</p>
-                <USeparator />
-                <p><span class="font-bold">Room orientation: </span>{{ getRoomById(plant.data[0].room_id)?.orientation }}</p>
-                <USeparator />
-                <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
-                <USeparator />
-                <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
-              </div>
-              <div class="flex gap-1.5">
-                <!-- Reminder -->
-                <div>
-                  <UModal v-model:open="isReminderModalOpen">
-                    <UButton
+                <h1 class="text-3xl font-bold mb-8">
+                  {{ plant.data[0].name }}
+                </h1>
+                <div class="flex flex-col gap-2 mb-8">
+                  <p><span class="font-bold">Species:</span> {{ plant.data[0].species }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Room: </span>{{ getRoomById(plant.data[0].room_id)?.name }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Room orientation: </span>{{ getRoomById(plant.data[0].room_id)?.orientation }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
+                </div>
+                <div class="flex gap-1.5">
+                  <!-- Reminder -->
+                  <div>
+                    <UModal v-model:open="isReminderModalOpen">
+                      <UButton
                         leading-icon="material-symbols:alarm-outline-rounded"
                         label="Add a reminder"
                         color="primary"
                         variant="solid"
-                    />
-                    <template #content>
-                      <form
+                      />
+                      <template #content>
+                        <form
                           class="p-8 flex flex-col gap-3 items-start"
                           @submit.prevent="addReminder"
-                      >
-                        <div class="flex flex-col gap-1 w-full">
-                          <BaseLabel text="Reminder" />
-                          <UTextarea
+                        >
+                          <div class="flex flex-col gap-1 w-full">
+                            <BaseLabel text="Reminder" />
+                            <UTextarea
                               v-model="message"
                               class="w-full"
                               placeholder="Enter a message"
-                          />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <BaseLabel text="Remind at" />
-                          <UInput
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <BaseLabel text="Remind at" />
+                            <UInput
+                              v-model="remindAt"
                               type="date"
                               accept="image/*"
                               class="w-full"
-                              v-model="remindAt"
-                          />
-
-                        </div>
-                        <UButton
+                            />
+                          </div>
+                          <UButton
                             type="submit"
                             leading-icon="material-symbols:note-outline-rounded"
                             label="Save reminder"
                             color="primary"
                             variant="solid"
-                        />
-                      </form>
-                    </template>
-                  </UModal>
-                </div>
-                <!-- Note -->
-                <div>
-                  <UModal v-model:open="isNoteModalOpen">
-                    <UButton
+                          />
+                        </form>
+                      </template>
+                    </UModal>
+                  </div>
+                  <!-- Note -->
+                  <div>
+                    <UModal v-model:open="isNoteModalOpen">
+                      <UButton
                         leading-icon="material-symbols:note-outline-rounded"
                         label="Add note"
                         color="primary"
                         variant="solid"
-                    />
-                    <template #content>
-                      <form
+                      />
+                      <template #content>
+                        <form
                           class="p-8 flex flex-col gap-3 items-start"
                           @submit.prevent="insertNote"
-                      >
-                        <div class="flex flex-col gap-1 w-full">
-                          <BaseLabel text="Note" />
-                          <UTextarea
+                        >
+                          <div class="flex flex-col gap-1 w-full">
+                            <BaseLabel text="Note" />
+                            <UTextarea
                               v-model="note"
                               class="w-full"
                               placeholder="Enter a note"
-                          />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <BaseLabel text="Photo" />
-                          <UInput
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <BaseLabel text="Photo" />
+                            <UInput
                               type="file"
                               accept="image/*"
                               class="w-full"
                               :trailing-icon="previewUrl ? 'i-heroicons-check-circle' : 'i-heroicons-photo'"
                               @input="handleFileChange"
-                          />
-                          <div
+                            />
+                            <div
                               v-if="previewUrl"
                               class="mt-2"
-                          >
-                            <NuxtImg
+                            >
+                              <NuxtImg
                                 :src="previewUrl"
                                 alt="Preview"
                                 class="w-32 h-32 object-cover rounded-lg"
-                            />
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <UButton
+                          <UButton
                             type="submit"
                             leading-icon="material-symbols:note-outline-rounded"
                             label="Save note"
                             color="primary"
                             variant="solid"
-                        />
-                      </form>
-                    </template>
-                  </UModal>
+                          />
+                        </form>
+                      </template>
+                    </UModal>
+                  </div>
                 </div>
-              </div>
-            </BaseCard>
+              </BaseCard>
             </div>
-            <!-- PARENT PLANT --> 
-           <PlantCard class="basis-1/3" :plant="getPlantById(plant?.data?.[0]?.parent_plant_id)" v-if="plant.data?.[0].parent_plant_id" />
+            <!-- PARENT PLANT -->
+            <PlantCard v-if="plant.data?.[0].parent_plant_id" class="basis-1/3" :plant="getPlantById(plant?.data?.[0]?.parent_plant_id)" />
           </div>
-      
 
           <!-- NOTES -->
           <BaseCard v-for="note in plant.data?.[0].notes">
@@ -179,11 +179,10 @@
               </figure>
             </div>
           </BaseCard>
-          <!-- CHILDREN-->
-           <div v-if="!!plant.children.length" class="grid grid-cols-3">
+          <!-- CHILDREN -->
+          <div v-if="!!plant.children.length" class="grid grid-cols-3">
             <PlantCard v-for="child in plant.children" class="basis-1/3" :plant="child" />
-           </div>
-
+          </div>
         </div>
         <div class="basis-full lg:basis-1/2">
           <!-- Photos Section -->
@@ -318,13 +317,17 @@
         <div class="p-8 flex flex-col gap-4">
           <div class="flex items-center gap-2">
             <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-primary" />
-            <h2 class="text-2xl font-bold">KI-Analyse</h2>
+            <h2 class="text-2xl font-bold">
+              KI-Analyse
+            </h2>
           </div>
           <div
             v-if="aiAnalysis"
             class="bg-gray-50 p-4 rounded-lg"
           >
-            <p class="whitespace-pre-wrap">{{ aiAnalysis }}</p>
+            <p class="whitespace-pre-wrap">
+              {{ aiAnalysis }}
+            </p>
           </div>
           <div
             v-else-if="aiAnalysisError"
@@ -410,14 +413,13 @@ const route = useRoute()
 const toast = useToast()
 const id = route.params.id
 
-
 const { data: plant, refresh } = await useFetch(`/api/plants/${id}`)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isUploading = ref(false)
 const showUploadModal = ref(false)
 
-const{ fetchMany: fetchPlants, getPlantById } = usePlants()
+const { fetchMany: fetchPlants, getPlantById } = usePlants()
 fetchPlants()
 const { many: rooms, fetchMany: fetchRooms, getRoomById } = useRooms()
 fetchRooms()
@@ -446,7 +448,8 @@ function handleFileChange(event: Event) {
 }
 
 async function uploadPhoto() {
-  if (!selectedFile.value) return
+  if (!selectedFile.value)
+    return
 
   try {
     isUploading.value = true
@@ -619,11 +622,13 @@ watch(left, (v) => {
 })
 
 watch(right, (v) => {
-  if (v) nextPhoto()
+  if (v)
+    nextPhoto()
 })
 
 watch(escape, (v) => {
-  if (v) showLightbox.value = false
+  if (v)
+    showLightbox.value = false
 })
 
 const showPlantEditModal = ref(false)
@@ -653,7 +658,7 @@ function getPhotoAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.find(photo => photo.note_id === noteId)
 }
 
-const isReminderModalOpen  = ref(false)
+const isReminderModalOpen = ref(false)
 
 const message = ref('')
 const remindAt = ref(null)
@@ -715,5 +720,4 @@ async function analyzePhotoWithAI() {
     isAnalyzing.value = false
   }
 }
-
 </script>

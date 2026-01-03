@@ -1,4 +1,4 @@
-export const usePlants = () => {
+export function usePlants() {
   const many: Ref<Plant[] | null> = useState('many', () => null)
 
   async function fetchMany() {

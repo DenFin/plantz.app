@@ -5,7 +5,11 @@
         <Icon name="heroicons-solid:home" />
       </NuxtLink>
       <Icon name="heroicons:chevron-right" />
-      <NuxtLink to="/plants"><p class="font-bold">Plants</p></NuxtLink>
+      <NuxtLink to="/plants">
+        <p class="font-bold">
+          Plants
+        </p>
+      </NuxtLink>
       <Icon name="heroicons:chevron-right" />
       <p class="font-bold">
         Add a plant
@@ -125,7 +129,8 @@ function handleFileChange(event: Event) {
 }
 
 async function addPlant() {
-  if (isSubmitting.value) return
+  if (isSubmitting.value)
+    return
 
   try {
     isSubmitting.value = true

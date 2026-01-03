@@ -97,9 +97,10 @@
             <NuxtLink
               :to="`/plants/${note.plant_id}`"
               class="font-bold"
-            >{{
-              getPlantById(note.plant_id)?.name
-            }}
+            >
+              {{
+                getPlantById(note.plant_id)?.name
+              }}
             </NuxtLink>
             <p class="">
               {{ note.content }}
@@ -113,7 +114,7 @@
           <p>You currently do not have any recent notes. Go to your plants and take a note!</p>
           <nuxt-link
             to="/plants"
-            class="block mt-4 flex items-center"
+            class="mt-4 flex items-center"
           >
             <Icon name="material-symbols:chevron-right-rounded" />
             <span class="font-bold">Go to plants</span>
@@ -147,7 +148,7 @@
           <p>You currently do not have any recent photos. Go to your plants and take a photos!</p>
           <nuxt-link
             to="/plants"
-            class="block mt-4 flex items-center"
+            class="mt-4 flex items-center"
           >
             <Icon name="material-symbols:chevron-right-rounded" />
             <span class="font-bold">Go to plants</span>

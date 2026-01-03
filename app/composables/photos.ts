@@ -1,4 +1,4 @@
-export const usePhotos = () => {
+export function usePhotos() {
   const many: Ref<Photo[] | null> = useState('many', () => null)
   const recent: Ref<Photo[] | null> = useState('recentPhotos', () => null)
 

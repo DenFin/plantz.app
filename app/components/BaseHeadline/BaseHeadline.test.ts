@@ -1,6 +1,6 @@
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 // @vitest-environment nuxt
 import { expect, it } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
 import BaseHeadline from '../../../components/BaseHeadline/BaseHeadline.vue'
 
 it('should render correct headline tag', async () => {

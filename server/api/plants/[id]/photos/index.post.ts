@@ -1,10 +1,10 @@
-import { readFile } from 'fs/promises'
 import type { H3Event } from 'h3'
-import { defineEventHandler, getRouterParam } from 'h3'
-import formidable from 'formidable'
+import { readFile } from 'node:fs/promises'
 import consola from 'consola'
-import { uploadFile } from '~~/server/utils/minio'
+import formidable from 'formidable'
+import { defineEventHandler, getRouterParam } from 'h3'
 import { database } from '~~/server/utils/db'
+import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {

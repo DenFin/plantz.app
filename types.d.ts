@@ -1,10 +1,10 @@
-interface ApiResponse<T> {
+type ApiResponse<T> = {
   data: T
   success?: boolean
   message?: string
 }
 
-interface Plant {
+type Plant = {
   id: string
   name: string
   species: string
@@ -15,20 +15,20 @@ interface Plant {
   room_id: string
 }
 
-interface Room {
+type Room = {
   id: string
   name: string
   icon: string
 }
 
-interface Note {
+type Note = {
   id: string
   plant_id: string
   content: string
   created_at: string
 }
 
-interface Photo {
+type Photo = {
   id: string
   plant_id: string
   image_url: string

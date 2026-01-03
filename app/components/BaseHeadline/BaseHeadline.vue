@@ -1,7 +1,7 @@
 <template>
   <component
     :is="props.element"
-    :class="['font-bold text-gray-900 dark:text-white', textSizeClasses]"
+    class="font-bold text-gray-900 dark:text-white" :class="[textSizeClasses]"
   >
     <slot>{{ props.text }}</slot>
   </component>

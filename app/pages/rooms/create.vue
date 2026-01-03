@@ -5,7 +5,11 @@
         <Icon name="heroicons-solid:home" />
       </NuxtLink>
       <Icon name="heroicons:chevron-right" />
-      <NuxtLink to="/rooms"><p class="font-bold">Rooms</p></NuxtLink>
+      <NuxtLink to="/rooms">
+        <p class="font-bold">
+          Rooms
+        </p>
+      </NuxtLink>
       <Icon name="heroicons:chevron-right" />
       <p class="font-bold">
         Add a room
@@ -67,7 +71,8 @@ const previewUrl = ref('')
 const isSubmitting = ref(false)
 
 async function addRoom() {
-  if (isSubmitting.value) return
+  if (isSubmitting.value)
+    return
 
   try {
     isSubmitting.value = true

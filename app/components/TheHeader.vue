@@ -26,7 +26,9 @@ const navItems: Array<NavItem> = [
       <NuxtLink
         class="font-bold"
         to="/"
-      >plantz.app</NuxtLink>
+      >
+        plantz.app
+      </NuxtLink>
       <nav>
         <ul class="flex gap-4">
           <li
@@ -36,7 +38,9 @@ const navItems: Array<NavItem> = [
             <NuxtLink
               active-class="font-bold"
               :to="item.to"
-            >{{ item.text }}</NuxtLink>
+            >
+              {{ item.text }}
+            </NuxtLink>
           </li>
         </ul>
       </nav>

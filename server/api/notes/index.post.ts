@@ -1,7 +1,7 @@
-import { readFile } from 'fs/promises'
-import { defineEventHandler } from 'h3'
-import formidable from 'formidable'
+import { readFile } from 'node:fs/promises'
 import consola from 'consola'
+import formidable from 'formidable'
+import { defineEventHandler } from 'h3'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
         file.mimetype || 'image/jpeg',
         userId,
       )
-      console.info('Uploaded photo: ' + objectKey)
+      console.info(`Uploaded photo: ${objectKey}`)
 
       // Create photo record
       const createPhotoQuery = `

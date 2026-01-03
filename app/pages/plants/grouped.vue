@@ -23,7 +23,9 @@
       </header>
       <div class="w-full">
         <div v-for="(plantsInRoom, roomName) in groupedByRoomName" :key="roomName" class="mb-8">
-          <h2 class="text-xl font-bold mb-2">{{ roomName }}</h2>
+          <h2 class="text-xl font-bold mb-2">
+            {{ roomName }}
+          </h2>
           <ul class="grid xl:grid-cols-6 gap-2">
             <li v-for="plant in plantsInRoom" :key="plant.id">
               <!-- beispielhafte Darstellung -->
@@ -50,9 +52,9 @@
  =================================== */
 const { data: plants, refresh: refreshPlants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
   server: true,
-  lazy: false,           // wichtig
-  immediate: true,       // fetch auch bei client nav
-  default: () => ({ data: [] })
+  lazy: false, // wichtig
+  immediate: true, // fetch auch bei client nav
+  default: () => ({ data: [] }),
 })
 const searchQuery = ref('')
 const filteredPlants = computed(() => {
@@ -74,31 +76,31 @@ const filteredPlants = computed(() => {
 const { fetchMany: fetchRooms, many: rooms } = useRooms()
 fetchRooms()
 
-
 const roomMap = computed(() => {
-  if (!rooms.value) return {};
-  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]));
-});
+  if (!rooms.value)
+    return {}
+  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]))
+})
 const groupedByRoomId = computed(() =>
-  Object.groupBy(plants.value?.data ?? [], p => p.room_id)
-);
+  Object.groupBy(plants.value?.data ?? [], p => p.room_id),
+)
 
 const groupedByRoomName = computed(() =>
   Object.fromEntries(
     Object.entries(groupedByRoomId.value).map(([roomId, plants]) => [
       roomMap.value[roomId] ?? `Unbekannt (${roomId})`,
-      plants
-    ])
-  )
-);
+      plants,
+    ]),
+  ),
+)
 
 /* ===================================
  * Columns
  =================================== */
- const columnCount = ref(5)
- const columnOptions = [3,4,5,6,7,8]
+const columnCount = ref(5)
+const columnOptions = [3, 4, 5, 6, 7, 8]
 
- const columnClasses = computed(() => {
+const columnClasses = computed(() => {
   switch (columnCount.value) {
     case 3:
       return 'grid gap-4 xl:grid-cols-3'
@@ -112,7 +114,6 @@ const groupedByRoomName = computed(() =>
       return 'grid gap-4 xl:grid-cols-7'
     case 8:
       return 'grid gap-4 xl:grid-cols-8 font-sm'
-  } 
- })
-
+  }
+})
 </script>

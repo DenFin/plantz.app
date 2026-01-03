@@ -1,6 +1,5 @@
-import { defineEventHandler } from 'h3'
 import formidable from 'formidable'
-import { queryDatabase } from '../../utils/db'
+import { defineEventHandler } from 'h3'
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-export const useNotes = () => {
+export function useNotes() {
   const many: Ref<Note[] | null> = useState('many', () => null)
   const recent: Ref<Note[] | null> = useState('recent', () => null)
 

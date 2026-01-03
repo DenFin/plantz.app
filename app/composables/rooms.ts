@@ -1,4 +1,4 @@
-export const useRooms = () => {
+export function useRooms() {
   const many: Ref<Array<Room> | null> = useState('rooms', () => null)
   const count: Ref<number | null> = useState('count', () => null)
 

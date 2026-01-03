@@ -32,7 +32,6 @@
         </div>
       </header>
       <div :class="columnClasses">
-        
         <PlantCard
           v-for="plant in filteredPlants"
           :key="plant.id"
@@ -58,9 +57,9 @@
  =================================== */
 const { data: plants, refresh: refreshPlants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
   server: true,
-  lazy: false,           // wichtig
-  immediate: true,       // fetch auch bei client nav
-  default: () => ({ data: [] })
+  lazy: false, // wichtig
+  immediate: true, // fetch auch bei client nav
+  default: () => ({ data: [] }),
 })
 const searchQuery = ref('')
 const filteredPlants = computed(() => {
@@ -82,31 +81,31 @@ const filteredPlants = computed(() => {
 const { fetchMany: fetchRooms, many: rooms } = useRooms()
 fetchRooms()
 
-
 const roomMap = computed(() => {
-  if (!rooms.value) return {};
-  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]));
-});
+  if (!rooms.value)
+    return {}
+  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]))
+})
 const groupedByRoomId = computed(() =>
-  Object.groupBy(plants.value?.data ?? [], p => p.room_id)
-);
+  Object.groupBy(plants.value?.data ?? [], p => p.room_id),
+)
 
 const groupedByRoomName = computed(() =>
   Object.fromEntries(
     Object.entries(groupedByRoomId.value).map(([roomId, plants]) => [
       roomMap.value[roomId] ?? `Unbekannt (${roomId})`,
-      plants
-    ])
-  )
-);
+      plants,
+    ]),
+  ),
+)
 
 /* ===================================
  * Columns
  =================================== */
- const columnCount = ref(5)
- const columnOptions = [3,4,5,6,7,8]
+const columnCount = ref(5)
+const columnOptions = [3, 4, 5, 6, 7, 8]
 
- const columnClasses = computed(() => {
+const columnClasses = computed(() => {
   switch (columnCount.value) {
     case 3:
       return 'grid gap-4 xl:grid-cols-3'
@@ -120,7 +119,6 @@ const groupedByRoomName = computed(() =>
       return 'grid gap-4 xl:grid-cols-7'
     case 8:
       return 'grid gap-4 xl:grid-cols-8 font-sm'
-  } 
- })
-
+  }
+})
 </script>

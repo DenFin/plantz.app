@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
-import { defineEventHandler, getRouterParam } from 'h3'
 import consola from 'consola'
+import { defineEventHandler, getRouterParam } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
 
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event: H3Event) => {
     try {
       const chunks: Buffer[] = []
       const dataStream = await minioClient.getObject(bucketName, imageUrl)
-      
+
       for await (const chunk of dataStream) {
         chunks.push(chunk)
       }
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
     // Convert to base64
     const base64Image = imageBuffer.toString('base64')
-    
+
     // Determine MIME type from file extension
     const extension = imageUrl.split('.').pop()?.toLowerCase()
     let mimeType = 'image/jpeg'
@@ -127,4 +127,3 @@ export default defineEventHandler(async (event: H3Event) => {
     return { error: 'Failed to analyze photo', status: 500 }
   }
 })
-

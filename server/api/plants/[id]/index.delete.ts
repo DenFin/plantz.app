@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
-import { defineEventHandler, getRouterParam } from 'h3'
 import consola from 'consola'
+import { defineEventHandler, getRouterParam } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'
 
 export default defineEventHandler(async (event: H3Event) => {
