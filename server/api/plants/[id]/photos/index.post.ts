@@ -45,10 +45,9 @@ export default defineEventHandler(async (event: H3Event) => {
 
       // Create photo record
       const createPhotoQuery = `
-                INSERT INTO photos (plant_id, image_url)
-                WHERE  plant_id = ?
-                VALUES ($1, $2)
-                  RETURNING id;
+        INSERT INTO photos (plant_id, image_url)
+        VALUES ($1, $2)
+        RETURNING id;
       `
       const result = await client.query(createPhotoQuery, [id, objectKey])
       consola.info('Created photo record:', result.rows[0])
