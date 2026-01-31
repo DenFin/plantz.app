@@ -50,24 +50,11 @@
 /* ===================================
  * Plants fetching and filtering
  =================================== */
-const { data: plants, refresh: refreshPlants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
+const { data: plants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
   server: true,
   lazy: false, // wichtig
   immediate: true, // fetch auch bei client nav
   default: () => ({ data: [] }),
-})
-const searchQuery = ref('')
-const filteredPlants = computed(() => {
-  if (searchQuery.value.length > 0) {
-    return plants.value?.data.filter((plant) => {
-      console.log(plant.name)
-      console.log(searchQuery.value)
-      return plant.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.species.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.location.toLowerCase().includes(searchQuery.value.toLowerCase())
-    })
-  }
-  else {
-    return plants.value?.data
-  }
 })
 
 /* ===================================
@@ -93,27 +80,4 @@ const groupedByRoomName = computed(() =>
     ]),
   ),
 )
-
-/* ===================================
- * Columns
- =================================== */
-const columnCount = ref(5)
-const columnOptions = [3, 4, 5, 6, 7, 8]
-
-const columnClasses = computed(() => {
-  switch (columnCount.value) {
-    case 3:
-      return 'grid gap-4 xl:grid-cols-3'
-    case 4:
-      return 'grid gap-4 xl:grid-cols-4'
-    case 5:
-      return 'grid gap-4 xl:grid-cols-5'
-    case 6:
-      return 'grid gap-4 xl:grid-cols-6'
-    case 7:
-      return 'grid gap-4 xl:grid-cols-7'
-    case 8:
-      return 'grid gap-4 xl:grid-cols-8 font-sm'
-  }
-})
 </script>

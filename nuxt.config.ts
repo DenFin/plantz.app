@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    minioBucket: process.env.MINIO_BUCKET,
     public: {
       openRouterApiKey: process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY,
     },

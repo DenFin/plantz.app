@@ -55,7 +55,7 @@
 /* ===================================
  * Plants fetching and filtering
  =================================== */
-const { data: plants, refresh: refreshPlants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
+const { data: plants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
   server: true,
   lazy: false, // wichtig
   immediate: true, // fetch auch bei client nav
@@ -65,8 +65,6 @@ const searchQuery = ref('')
 const filteredPlants = computed(() => {
   if (searchQuery.value.length > 0) {
     return plants.value?.data.filter((plant) => {
-      console.log(plant.name)
-      console.log(searchQuery.value)
       return plant.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.species.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.location.toLowerCase().includes(searchQuery.value.toLowerCase())
     })
   }
@@ -74,30 +72,6 @@ const filteredPlants = computed(() => {
     return plants.value?.data
   }
 })
-
-/* ===================================
- * Rooms
- =================================== */
-const { fetchMany: fetchRooms, many: rooms } = useRooms()
-fetchRooms()
-
-const roomMap = computed(() => {
-  if (!rooms.value)
-    return {}
-  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]))
-})
-const groupedByRoomId = computed(() =>
-  Object.groupBy(plants.value?.data ?? [], p => p.room_id),
-)
-
-const groupedByRoomName = computed(() =>
-  Object.fromEntries(
-    Object.entries(groupedByRoomId.value).map(([roomId, plants]) => [
-      roomMap.value[roomId] ?? `Unbekannt (${roomId})`,
-      plants,
-    ]),
-  ),
-)
 
 /* ===================================
  * Columns
@@ -119,6 +93,8 @@ const columnClasses = computed(() => {
       return 'grid gap-4 xl:grid-cols-7'
     case 8:
       return 'grid gap-4 xl:grid-cols-8 font-sm'
+    default:
+      return 'grid gap-4 xl:grid-cols-3'
   }
 })
 </script>

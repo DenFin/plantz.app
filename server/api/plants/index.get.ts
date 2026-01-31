@@ -1,9 +1,16 @@
+import type { Plants } from '~~/db-types'
 import consola from 'consola'
 import { defineEventHandler } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'
+
 import { createMinioClient } from '~~/server/utils/minio'
 
-export default defineEventHandler(async (event) => {
+type ApiResponse<T> = {
+  status: number
+  data: T
+}
+
+export default defineEventHandler(async () => {
   try {
     const query = `
             SELECT p.*,
@@ -23,7 +30,8 @@ export default defineEventHandler(async (event) => {
 
     // Create Minio client to generate URLs for thumbnails
     const minioClient = createMinioClient()
-    const bucketName = process.env.MINIO_BUCKET || 'plantz'
+    const config = useRuntimeConfig()
+    const bucketName = config.minioBucket
 
     // Generate presigned URLs for thumbnails
     for (const plant of plants) {
@@ -36,7 +44,9 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    return { status: 200, data: plants }
+    const apiResponse: ApiResponse<Plants[]> = { status: 200, data: plants }
+
+    return apiResponse
   }
   catch (error) {
     consola.error('Error handling plants:', error)

@@ -160,6 +160,12 @@
 </template>
 
 <script setup lang="ts">
+useHead({
+  title: 'Dashboard',
+})
+definePageMeta({
+  title: 'Dashboard',
+})
 // TODO: Refactor to composables
 const { data: plantCount } = useFetch('/api/plants/count', { lazy: true })
 const { data: photosCount } = useFetch('/api/plants/photos', { lazy: true })

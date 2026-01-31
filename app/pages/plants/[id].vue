@@ -157,7 +157,7 @@
           </div>
 
           <!-- NOTES -->
-          <BaseCard v-for="note in plant.data?.[0].notes">
+          <BaseCard v-for="note in plant.data?.[0].notes" :key="note.id">
             <div class="flex">
               <div class="basis-full flex justify-center flex-col">
                 <p class="text-xs">
@@ -366,6 +366,19 @@
               placeholder="Plant name"
             />
           </div>
+          <div
+            v-if="plants"
+            class="flex flex-col gap-1"
+          >
+            <BaseLabel text="Parent Plant" />
+            <USelect
+              v-model="plantToEdit.parent_plant_id"
+              :items="plants"
+              label-key="name"
+              value-key="id"
+              placeholder="Does the plant have a parent?"
+            />
+          </div>
           <div class="flex flex-col gap-1">
             <BaseLabel text="Species" />
             <UInput
@@ -407,19 +420,20 @@
 </template>
 
 <script setup lang="ts">
+import type { Plants } from '~~/db-types'
 import { useMagicKeys } from '@vueuse/core'
 
 const route = useRoute()
 const toast = useToast()
 const id = route.params.id
 
-const { data: plant, refresh } = await useFetch(`/api/plants/${id}`)
+const { data: plant, refresh } = await useFetch <ApiResponse<Plants[]>>(`/api/plants/${id}`)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isUploading = ref(false)
 const showUploadModal = ref(false)
 
-const { fetchMany: fetchPlants, getPlantById } = usePlants()
+const { many: plants, fetchMany: fetchPlants, getPlantById } = usePlants()
 fetchPlants()
 const { many: rooms, fetchMany: fetchRooms, getRoomById } = useRooms()
 fetchRooms()
@@ -600,6 +614,7 @@ async function insertNote() {
 const plantToEdit = ref({
   id: plant.value?.data?.[0]?.id,
   name: plant.value?.data?.[0]?.name,
+  parent_plant_id: plant.value?.data?.[0]?.parent_plant_id,
   species: plant.value?.data?.[0]?.species,
   location: plant.value?.data?.[0]?.location,
   room_id: plant.value?.data?.[0]?.room_id,
@@ -609,6 +624,7 @@ watch(plant, (newVal, oldVal) => {
   plantToEdit.value = {
     id: plant.value?.data?.[0]?.id,
     name: plant.value?.data?.[0]?.name,
+    parent_plant_id: plant.value?.data?.[0]?.parent_plant_id,
     species: plant.value?.data?.[0]?.species,
     location: plant.value?.data?.[0]?.location,
     room_id: plant.value?.data?.[0]?.room_id,

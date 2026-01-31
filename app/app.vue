@@ -9,3 +9,14 @@
     </UApp>
   </div>
 </template>
+
+<script setup lang="ts">
+const route = useRoute()
+useHead({
+  titleTemplate: '%s | plantz.app',
+  meta: [
+    { property: 'og:title', content: `${route.meta.title} | plantz.app` },
+    { name: 'description', content: 'plantz.app ist eine App um den Wachstumsfortschritt von Zimmerpflanzen zu verfolgen.' },
+  ],
+})
+</script>
