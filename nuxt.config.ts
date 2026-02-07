@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt', '@nuxt/eslint'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+  ui: {
+    colorMode: false,
+  },
   runtimeConfig: {
     minioBucket: process.env.MINIO_BUCKET,
     public: {

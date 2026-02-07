@@ -26,7 +26,7 @@
           <h2 class="text-xl font-bold mb-2">
             {{ roomName }}
           </h2>
-          <ul class="grid xl:grid-cols-6 gap-2">
+          <ul class="grid lg:grid-cols-6 gap-2">
             <li v-for="plant in plantsInRoom" :key="plant.id">
               <!-- beispielhafte Darstellung -->
               <PlantCard :plant="plant" />
