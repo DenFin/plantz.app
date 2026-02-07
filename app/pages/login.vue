@@ -87,7 +87,8 @@ async function handleSignIn() {
       error.value = result.error.message ?? 'Anmeldung fehlgeschlagen.'
       return
     }
-    await navigateTo('/')
+    // Full page navigation so middleware sees the new session (no stale useFetch cache)
+    await navigateTo('/dashboard', { external: true })
   }
   finally {
     loading.value = false

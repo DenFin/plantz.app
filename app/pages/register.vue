@@ -105,7 +105,8 @@ async function handleSignUp() {
       error.value = result.error.message ?? 'Registrierung fehlgeschlagen.'
       return
     }
-    await navigateTo('/')
+    // Full page navigation so middleware sees the new session (no stale useFetch cache)
+    await navigateTo('/dashboard', { external: true })
   }
   finally {
     loading.value = false

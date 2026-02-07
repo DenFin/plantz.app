@@ -7,7 +7,7 @@ type NavItem = {
 const navItems: Array<NavItem> = [
   {
     text: 'Dashboard',
-    to: '/',
+    to: '/dashboard',
   },
   {
     text: 'Plants',
@@ -21,6 +21,11 @@ const navItems: Array<NavItem> = [
 
 const authClient = useAuthClient()
 const session = authClient.useSession()
+
+async function handleSignOut() {
+  await authClient.signOut()
+  await navigateTo('/', { external: true })
+}
 </script>
 
 <template>
@@ -28,7 +33,7 @@ const session = authClient.useSession()
     <BaseContainer class="px-4 sm:px-0 container mx-auto flex items-center justify-between">
       <NuxtLink
         class="font-bold"
-        to="/"
+        to="/dashboard"
       >
         plantz.app
       </NuxtLink>
@@ -52,7 +57,7 @@ const session = authClient.useSession()
             <button
               type="button"
               class="text-sm underline hover:no-underline"
-              @click="authClient.signOut()"
+              @click="handleSignOut"
             >
               Abmelden
             </button>
