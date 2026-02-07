@@ -18,6 +18,9 @@ const navItems: Array<NavItem> = [
     to: '/rooms',
   },
 ]
+
+const authClient = useAuthClient()
+const session = authClient.useSession()
 </script>
 
 <template>
@@ -30,7 +33,7 @@ const navItems: Array<NavItem> = [
         plantz.app
       </NuxtLink>
       <nav>
-        <ul class="flex gap-4">
+        <ul class="flex gap-4 items-center">
           <li
             v-for="(item, index) in navItems"
             :key="`nav-item-${index}`"
@@ -42,9 +45,28 @@ const navItems: Array<NavItem> = [
               {{ item.text }}
             </NuxtLink>
           </li>
+          <li v-if="session.data">
+            <span class="text-emerald-100 text-sm">{{ session.data.user?.name ?? session.data.user?.email }}</span>
+          </li>
+          <li v-if="session.data">
+            <button
+              type="button"
+              class="text-sm underline hover:no-underline"
+              @click="authClient.signOut()"
+            >
+              Abmelden
+            </button>
+          </li>
+          <li v-else>
+            <NuxtLink
+              to="/login"
+              class="text-sm underline hover:no-underline"
+            >
+              Anmelden
+            </NuxtLink>
+          </li>
         </ul>
       </nav>
-      <div />
     </BaseContainer>
   </header>
 </template>
