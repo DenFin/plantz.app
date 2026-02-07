@@ -3,11 +3,13 @@ import { readFile } from 'node:fs/promises'
 import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler, getRouterParam } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { database } from '~~/server/utils/db'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
+    const userId = await requireUserId(event)
     const id = getRouterParam(event, 'id')
     consola.info('Processing photo upload for plant:', id)
 
@@ -27,12 +29,19 @@ export default defineEventHandler(async (event: H3Event) => {
       await client.query('BEGIN')
       consola.info('Started database transaction')
 
+      // Prüfen, dass die Pflanze dem User gehört
+      const plantCheck = await client.query(
+        'SELECT id FROM plants WHERE id = $1 AND user_id = $2',
+        [id, userId],
+      )
+      if (plantCheck.rows.length === 0) {
+        await client.query('ROLLBACK')
+        return { error: 'Plant not found', status: 404 }
+      }
+
       const file = files.photo[0]
       const fileBuffer = await readFile(file.filepath)
       consola.info('Read file buffer, size:', fileBuffer.length)
-
-      // For now, using a placeholder user ID until auth is implemented
-      const userId = 'default-user'
 
       // Upload to Minio with user directory
       const objectKey = await uploadFile(

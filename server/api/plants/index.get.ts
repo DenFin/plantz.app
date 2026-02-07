@@ -1,6 +1,7 @@
 import type { Plants } from '~~/db-types'
 import consola from 'consola'
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { queryDatabase } from '~~/server/utils/db'
 
 import { createMinioClient } from '~~/server/utils/minio'
@@ -10,8 +11,9 @@ type ApiResponse<T> = {
   data: T
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
+    const userId = await requireUserId(event)
     const query = `
             SELECT p.*,
                    (SELECT json_build_object(
@@ -23,10 +25,10 @@ export default defineEventHandler(async () => {
                     ORDER BY ph.taken_at DESC
                     LIMIT 1) as thumbnail
             FROM plants p
-            WHERE p.status != 'dead';
+            WHERE p.status != 'dead' AND p.user_id = $1;
         `
 
-    const plants = await queryDatabase(query)
+    const plants = await queryDatabase(query, [userId])
 
     // Create Minio client to generate URLs for thumbnails
     const minioClient = createMinioClient()

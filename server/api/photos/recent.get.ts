@@ -1,15 +1,18 @@
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
+    const userId = await requireUserId(event)
     const query = `
-            SELECT * FROM photos 
-            WHERE taken_at >= (CURRENT_TIMESTAMP - INTERVAL '31 days')
-            ORDER BY taken_at DESC`
+            SELECT ph.* FROM photos ph
+            JOIN plants p ON ph.plant_id = p.id
+            WHERE p.user_id = $1 AND ph.taken_at >= (CURRENT_TIMESTAMP - INTERVAL '31 days')
+            ORDER BY ph.taken_at DESC`
 
-    const plants = await queryDatabase(query)
+    const plants = await queryDatabase(query, [userId])
     const minioClient = createMinioClient()
     const bucketName = process.env.MINIO_BUCKET || 'plantz'
     for (const plant of plants) {

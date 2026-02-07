@@ -1,8 +1,11 @@
 import formidable from 'formidable'
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
+import { database } from '~~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {
+    const userId = await requireUserId(event)
     console.log('Creating room')
     const form = formidable({})
     const [fields] = await form.parse(event.node.req)
@@ -17,10 +20,10 @@ export default defineEventHandler(async (event) => {
     try {
       await client.query('BEGIN')
 
-      // 1. Create the plant
+      // 1. Create the room
       const createPlantQuery = `
-                    INSERT INTO rooms (name, color, icon, orientation)
-                    VALUES ($1, $2, $3, $4)
+                    INSERT INTO rooms (name, color, icon, orientation, user_id)
+                    VALUES ($1, $2, $3, $4, $5)
                     RETURNING id;
                 `
       const plantResult = await client.query(createPlantQuery, [
@@ -28,6 +31,7 @@ export default defineEventHandler(async (event) => {
         fields.color[0],
         fields.icon[0],
         fields.orientation[0],
+        userId,
       ])
       const plantId = plantResult.rows[0].id
       console.log('plantId', plantId)

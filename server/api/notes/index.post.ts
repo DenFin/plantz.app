@@ -2,9 +2,12 @@ import { readFile } from 'node:fs/promises'
 import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
+import { database } from '~~/server/utils/db'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
+  const userId = await requireUserId(event)
   console.info('Creating note')
   const form = formidable({})
   const [fields, files] = await form.parse(event.node.req)
@@ -16,6 +19,16 @@ export default defineEventHandler(async (event) => {
   try {
     const client = await database()
     await client.query('BEGIN')
+
+    // Prüfen, dass die Pflanze dem User gehört
+    const plantCheck = await client.query(
+      'SELECT id FROM plants WHERE id = $1 AND user_id = $2',
+      [plant_id[0], userId],
+    )
+    if (plantCheck.rows.length === 0) {
+      await client.query('ROLLBACK')
+      return { status: 404, error: 'Plant not found' }
+    }
     console.log('plant_id', plant_id)
     console.log('note', note)
     const insertNoteQuery = `
@@ -31,9 +44,6 @@ export default defineEventHandler(async (event) => {
       console.info('Note has a photo!')
       const file = files.photo[0]
       const fileBuffer = await readFile(file.filepath)
-
-      // For now, using a placeholder user ID until auth is implemented
-      const userId = 'default-user'
 
       // Upload to Minio with user directory
       const objectKey = await uploadFile(

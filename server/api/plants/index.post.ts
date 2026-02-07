@@ -2,11 +2,13 @@ import { readFile } from 'node:fs/promises'
 import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { database } from '~~/server/utils/db'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
   try {
+    const userId = await requireUserId(event)
     consola.info('Creating plant')
     const form = formidable({})
     const [fields, files] = await form.parse(event.node.req)
@@ -22,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
       // 1. Create the plant
       const createPlantQuery = `
-                    INSERT INTO plants (name, species, parent_plant_id, location, room_id)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO plants (name, species, parent_plant_id, location, room_id, user_id)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     RETURNING id;
                 `
       const plantResult = await client.query(createPlantQuery, [
@@ -32,6 +34,7 @@ export default defineEventHandler(async (event) => {
         fields.parentPlant?.[0] ?? null,
         fields.location[0],
         fields.room[0],
+        userId,
       ])
       const plantId = plantResult.rows[0].id
 
@@ -39,9 +42,6 @@ export default defineEventHandler(async (event) => {
       if (files.photo?.[0]) {
         const file = files.photo[0]
         const fileBuffer = await readFile(file.filepath)
-
-        // For now, using a placeholder user ID until auth is implemented
-        const userId = 'default-user'
 
         // Upload to Minio with user directory
         const objectKey = await uploadFile(

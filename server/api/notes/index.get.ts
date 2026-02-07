@@ -1,10 +1,16 @@
 import { defineEventHandler } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { queryDatabase } from '~~/server/utils/db'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
-    const query = 'SELECT * FROM notes'
-    const plants = await queryDatabase(query)
+    const userId = await requireUserId(event)
+    const query = `
+      SELECT n.* FROM notes n
+      JOIN plants p ON n.plant_id = p.id
+      WHERE p.user_id = $1
+    `
+    const plants = await queryDatabase(query, [userId])
 
     return {
       status: 200,

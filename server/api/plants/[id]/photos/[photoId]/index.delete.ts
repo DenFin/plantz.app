@@ -1,12 +1,14 @@
 import type { H3Event } from 'h3'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { database } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
-    const plantId = getRouterParam(event, 'plantId')
+    const userId = await requireUserId(event)
+    const plantId = getRouterParam(event, 'id')
     const photoId = getRouterParam(event, 'photoId')
 
     console.log('plantId', plantId)
@@ -17,12 +19,13 @@ export default defineEventHandler(async (event: H3Event) => {
     try {
       await client.query('BEGIN')
 
-      // Get the photo details first
+      // Get the photo and ensure plant belongs to user
       const getPhotoQuery = `
-                    SELECT image_url FROM photos 
-                    WHERE id = $1 AND plant_id = $2;
+                    SELECT ph.image_url FROM photos ph
+                    JOIN plants p ON ph.plant_id = p.id
+                    WHERE ph.id = $1 AND ph.plant_id = $2 AND p.user_id = $3;
                 `
-      const photoResult = await client.query(getPhotoQuery, [photoId, plantId])
+      const photoResult = await client.query(getPhotoQuery, [photoId, plantId, userId])
 
       if (photoResult.rows.length === 0) {
         return { error: 'Photo not found', status: 404 }

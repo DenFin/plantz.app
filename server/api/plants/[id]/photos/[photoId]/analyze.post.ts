@@ -1,11 +1,13 @@
 import type { H3Event } from 'h3'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
+    const userId = await requireUserId(event)
     const plantId = getRouterParam(event, 'id')
     const photoId = getRouterParam(event, 'photoId')
     const apiKey = process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY
@@ -19,13 +21,14 @@ export default defineEventHandler(async (event: H3Event) => {
       return { error: 'AI analysis not configured', status: 500 }
     }
 
-    // Get photo details from database
+    // Get photo details and ensure plant belongs to user
     const photoQuery = `
-      SELECT image_url 
-      FROM photos 
-      WHERE id = $1 AND plant_id = $2;
+      SELECT ph.image_url
+      FROM photos ph
+      JOIN plants p ON ph.plant_id = p.id
+      WHERE ph.id = $1 AND ph.plant_id = $2 AND p.user_id = $3;
     `
-    const photoResult = await queryDatabase(photoQuery, [photoId, plantId])
+    const photoResult = await queryDatabase(photoQuery, [photoId, plantId, userId])
 
     if (!photoResult || photoResult.length === 0) {
       return { error: 'Photo not found', status: 404 }

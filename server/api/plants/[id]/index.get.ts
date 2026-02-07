@@ -1,11 +1,13 @@
 import type { H3Event } from 'h3'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
+import { requireUserId } from '~~/server/utils/auth-session'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
+    const userId = await requireUserId(event)
     const id = getRouterParam(event, 'id')
     consola.info('Fetching plant details for ID:', id)
 
@@ -25,14 +27,14 @@ export default defineEventHandler(async (event: H3Event) => {
                      LEFT JOIN (
                 SELECT * FROM photos ORDER BY taken_at DESC
             ) ph ON p.id = ph.plant_id
-            WHERE p.id = $1
+            WHERE p.id = $1 AND p.user_id = $2
             GROUP BY p.id;
         `
 
-    const queryChildren = `SELECT * FROM plants WHERE parent_plant_id = $1`
+    const queryChildren = `SELECT * FROM plants WHERE parent_plant_id = $1 AND user_id = $2`
 
-    const plants = await queryDatabase(query, [id])
-    const children = await queryDatabase(queryChildren, [id])
+    const plants = await queryDatabase(query, [id, userId])
+    const children = await queryDatabase(queryChildren, [id, userId])
     // TODO: Add logging for retrieving data from DB
 
     if (!plants || plants.length === 0) {
