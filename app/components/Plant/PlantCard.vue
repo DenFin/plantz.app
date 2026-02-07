@@ -9,7 +9,7 @@
         <!-- Plant Thumbnail -->
         <figure
           v-if="plant.thumbnail"
-          class="bg-white w-full aspect-square overflow-hidden relative"
+          class="bg-white w-full h-full aspect-square overflow-hidden relative"
         >
           <NuxtImg
             :src="plant.thumbnail.url"
@@ -17,7 +17,7 @@
             class="w-full h-full object-cover"
           />
           <UBadge
-            class="absolute top-2 right-2"
+            class="hidden lg:block absolute top-2 right-2"
             color="neutral"
             variant="outline"
             :icon="getRoom(plant.room_id)?.icon"

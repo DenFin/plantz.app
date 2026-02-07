@@ -82,19 +82,19 @@ const columnOptions = [3, 4, 5, 6, 7, 8]
 const columnClasses = computed(() => {
   switch (columnCount.value) {
     case 3:
-      return 'grid gap-4 xl:grid-cols-3'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-3'
     case 4:
-      return 'grid gap-4 xl:grid-cols-4'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-4'
     case 5:
-      return 'grid gap-4 xl:grid-cols-5'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-5'
     case 6:
-      return 'grid gap-4 xl:grid-cols-6'
+      return 'grid gap-4 lg:grid-cols-6'
     case 7:
-      return 'grid gap-4 xl:grid-cols-7'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-7'
     case 8:
-      return 'grid gap-4 xl:grid-cols-8 font-sm'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-8 font-sm'
     default:
-      return 'grid gap-4 xl:grid-cols-3'
+      return 'grid gap-2 lg:gap-4 lg:grid-cols-3'
   }
 })
 </script>
