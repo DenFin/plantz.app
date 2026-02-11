@@ -2,6 +2,14 @@
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt', '@nuxt/eslint'],
   devtools: { enabled: true },
+  app: {
+    head: {
+      meta: [
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      ],
+    },
+  },
   css: ['~/assets/css/main.css'],
   ui: {
     colorMode: false,

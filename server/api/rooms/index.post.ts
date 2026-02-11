@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (error) {
-    console.error('Error creating plant:', error)
+    console.error('Error creating room:', error)
     return { error: 'Failed to create plant', status: 500 }
   }
 })

@@ -18,6 +18,8 @@ export default defineEventHandler(async (event) => {
     // Start a database transaction
     const client = await database()
     try {
+      console.info('Starting database transaction with data')
+      console.info('Data: ', { name: fields.name[0], species: fields.species[0], parent_plant_id: fields.parentPlant?.[0] || null, location: fields.location[0], room_id: fields.room[0] })
       await client.query('BEGIN')
 
       // 1. Create the plant
@@ -29,7 +31,7 @@ export default defineEventHandler(async (event) => {
       const plantResult = await client.query(createPlantQuery, [
         fields.name[0],
         fields.species[0],
-        fields.parentPlant?.[0] ?? null,
+        fields.parentPlant?.[0] || null,
         fields.location[0],
         fields.room[0],
       ])

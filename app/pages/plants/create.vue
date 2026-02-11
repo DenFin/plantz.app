@@ -175,3 +175,11 @@ async function addPlant() {
   }
 }
 </script>
+
+<style>
+input {
+  font-size: 16px;
+  transform: scale(0.875); /* ≈ 14px Look */
+  transform-origin: left top;
+}
+</style>

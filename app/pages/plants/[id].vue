@@ -180,8 +180,8 @@
             </div>
           </BaseCard>
           <!-- CHILDREN -->
-          <div v-if="!!plant.children.length" class="grid grid-cols-3">
-            <PlantCard v-for="child in plant.children" class="basis-1/3" :plant="child" />
+          <div v-if="!!plant.children.length" class="grid gap-2 grid-cols-1 lg:grid-cols-3">
+            <PlantCard v-for="child in plant.children" :key="child.id" class="basis-1/3" :plant="child" />
           </div>
         </div>
         <div class="basis-full lg:basis-1/2">

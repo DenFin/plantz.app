@@ -20,24 +20,19 @@
             Plants
           </p>
         </div>
-        <div>
-          <UInput
-            v-model="searchQuery"
-            color="primary"
-            placeholder="Search"
-          />
-        </div>
-        <div>
-          <USelect v-model="columnCount" :items="columnOptions" />
-        </div>
       </header>
-      <div :class="columnClasses">
-        <PlantCard
-          v-for="plant in filteredPlants"
-          :key="plant.id"
-          :plant="plant"
-          class="block"
-        />
+      <div class="w-full">
+        <div v-for="(plantsInRoom, roomName) in groupedByRoomName" :key="roomName" class="mb-8">
+          <h2 class="text-xl font-bold mb-2">
+            {{ roomName }}
+          </h2>
+          <ul class="grid lg:grid-cols-6 gap-2">
+            <li v-for="plant in plantsInRoom" :key="plant.id">
+              <!-- beispielhafte Darstellung -->
+              <PlantCard :plant="plant" />
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
     <UButton
@@ -61,40 +56,28 @@ const { data: plants } = useFetch<ApiResponse<Plant[]>>('/api/plants', {
   immediate: true, // fetch auch bei client nav
   default: () => ({ data: [] }),
 })
-const searchQuery = ref('')
-const filteredPlants = computed(() => {
-  if (searchQuery.value.length > 0) {
-    return plants.value?.data.filter((plant) => {
-      return plant.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.species.toLowerCase().includes(searchQuery.value.toLowerCase()) || plant.location.toLowerCase().includes(searchQuery.value.toLowerCase())
-    })
-  }
-  else {
-    return plants.value?.data
-  }
-})
 
 /* ===================================
- * Columns
+ * Rooms
  =================================== */
-const columnCount = ref(5)
-const columnOptions = [3, 4, 5, 6, 7, 8]
+const { fetchMany: fetchRooms, many: rooms } = useRooms()
+fetchRooms()
 
-const columnClasses = computed(() => {
-  switch (columnCount.value) {
-    case 3:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-3'
-    case 4:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-4'
-    case 5:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-5'
-    case 6:
-      return 'grid gap-4 lg:grid-cols-6'
-    case 7:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-7'
-    case 8:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-8 font-sm'
-    default:
-      return 'grid gap-2 lg:gap-4 lg:grid-cols-3'
-  }
+const roomMap = computed(() => {
+  if (!rooms.value)
+    return {}
+  return Object.fromEntries(rooms.value.map(r => [r.id, r.name]))
 })
+const groupedByRoomId = computed(() =>
+  Object.groupBy(plants.value?.data ?? [], p => p.room_id),
+)
+
+const groupedByRoomName = computed(() =>
+  Object.fromEntries(
+    Object.entries(groupedByRoomId.value).map(([roomId, plants]) => [
+      roomMap.value[roomId] ?? `Unbekannt (${roomId})`,
+      plants,
+    ]),
+  ),
+)
 </script>

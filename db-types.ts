@@ -25,6 +25,7 @@ export type Plants = {
   room_id: number | null
   status: any
   parent_plant_id: string | null
+  children: Array<Plants>
 }
 
 export type Reminders = {

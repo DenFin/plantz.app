@@ -20,3 +20,9 @@ useHead({
   ],
 })
 </script>
+
+<style>
+html, body {
+ background: oklch(98.2% 0.018 155.826)
+}
+</style>
