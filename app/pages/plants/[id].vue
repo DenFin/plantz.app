@@ -261,56 +261,15 @@
         </div>
       </div>
     </section>
-    <!-- PlantLightbox -->
-    <div
-      v-if="showLightbox"
-      class="fixed z-40 bg-black/80 backdrop-blur-xs top-0 left-0 right-0 bottom-0 flex flex-col justify-center items-center p-4 xl:p-20"
-      @click.self="closeLightbox"
-    >
-      <div
-        class="h-full max-h-screen relative flex items-center"
-        @click.self="closeLightbox"
-      >
-        <div class="absolute flex w-full justify-between">
-          <div class="bg-white p-1 flex rounded-lg  ">
-            <UIcon
-              name="i-heroicons:chevron-left"
-              size="xs"
-              class="w-8 h-8 text-gray-900 cursor-pointer"
-              @keydown.left="previousPhoto"
-              @click="previousPhoto"
-            />
-          </div>
-          <div class="bg-white p-1 flex rounded-lg">
-            <UIcon
-              name="i-heroicons:chevron-right"
-              size="xs"
-              class="w-8 h-8 text-gray-900 cursor-pointer"
-              @keyup.left="nextPhoto"
-              @click="nextPhoto"
-            />
-          </div>
-        </div>
-        <div class="bg-white p-3 rounded-lg absolute bottom-2 -translate-x-1/2 left-1/2 flex items-center gap-3">
-          <span>{{ formatDate(plant.data[0].photos[lightboxPhotoIndex]?.taken_at) }}</span>
-          <UButton
-            :loading="isAnalyzing"
-            :disabled="isAnalyzing"
-            icon="i-heroicons-sparkles"
-            color="primary"
-            variant="solid"
-            size="sm"
-            @click="analyzePhotoWithAI"
-          >
-            KI-Analyse
-          </UButton>
-        </div>
-        <NuxtImg
-          class="h-auto max-h-full w-auto rounded-lg overflow-hidden"
-          :src="lightboxPhotoUrl"
-        />
-      </div>
-    </div>
+    <PlantLightbox
+      ref="lightboxRef"
+      v-model="showLightbox"
+      :photos="plant.data[0].photos"
+      :image-url-key="'url'"
+      :show-analyze-button="true"
+      @close="closeLightbox"
+      @analyze="handleAnalyze"
+    />
     <!-- AI Analysis Modal -->
     <UModal v-model:open="showAIAnalysisModal">
       <template #content>
@@ -421,7 +380,6 @@
 
 <script setup lang="ts">
 import type { Plants } from '~~/db-types'
-import { useMagicKeys } from '@vueuse/core'
 
 const route = useRoute()
 const toast = useToast()
@@ -537,40 +495,20 @@ async function deletePhoto(photoId: string) {
   }
 }
 
+const lightboxRef = ref<InstanceType<typeof PlantLightbox> | null>(null)
 const showLightbox = ref(false)
-const lightboxPhotoIndex = ref(0)
 
 function closeLightbox() {
   showLightbox.value = false
-  lightboxPhotoIndex.value = 0
 }
 
 function openPhotoInLightbox(index: number) {
-  showLightbox.value = true
-  lightboxPhotoIndex.value = index
+  lightboxRef.value?.open(index)
 }
 
-function nextPhoto() {
-  if (lightboxPhotoIndex.value + 1 === plant.value.data[0].photos.length) {
-    lightboxPhotoIndex.value = 0
-  }
-  else {
-    lightboxPhotoIndex.value++
-  }
+function handleAnalyze(photo: any) {
+  analyzePhotoWithAI(photo.id)
 }
-
-function previousPhoto() {
-  if (lightboxPhotoIndex.value === 0) {
-    lightboxPhotoIndex.value = plant.value.data[0].photos.length - 1
-  }
-  else {
-    lightboxPhotoIndex.value--
-  }
-}
-
-const lightboxPhotoUrl = computed<string>(() => {
-  return plant?.value?.data?.[0]?.photos?.[lightboxPhotoIndex.value]?.url
-})
 
 const isNoteModalOpen = ref(false)
 const note = ref('')
@@ -689,17 +627,8 @@ const showAIAnalysisModal = ref(false)
 const aiAnalysis = ref('')
 const aiAnalysisError = ref('')
 
-async function analyzePhotoWithAI() {
-  if (!plant.value?.data?.[0]?.photos?.[lightboxPhotoIndex.value]) {
-    toast.add({
-      title: 'Kein Foto gefunden',
-      color: 'error',
-    })
-    return
-  }
-
-  const photo = plant.value.data[0].photos[lightboxPhotoIndex.value]
-  if (!photo.id) {
+async function analyzePhotoWithAI(photoId?: string) {
+  if (!photoId) {
     toast.add({
       title: 'Foto-ID nicht gefunden',
       color: 'error',
@@ -713,7 +642,7 @@ async function analyzePhotoWithAI() {
     aiAnalysis.value = ''
     showAIAnalysisModal.value = true
 
-    const response = await $fetch(`/api/plants/${id}/photos/${photo.id}/analyze`, {
+    const response = await $fetch(`/api/plants/${id}/photos/${photoId}/analyze`, {
       method: 'POST',
     })
 

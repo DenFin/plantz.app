@@ -131,14 +131,26 @@
           class="grid grid-cols-3 gap-3"
         >
           <figure
-            v-for="photo in recentPhotos"
+            v-for="(photo, index) in recentPhotos"
             :key="photo.id"
-            class="rounded-lg aspect-square overflow-hidden"
+            class="rounded-lg aspect-square overflow-hidden cursor-pointer relative group"
+            @click="openPhotoInLightbox(index)"
           >
             <NuxtImg
               class="h-full w-full object-cover"
               :src="photo.image_url"
             />
+            <div
+              class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+            >
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-heroicons-magnifying-glass-plus"
+                size="xs"
+                class="cursor-pointer !text-white"
+              />
+            </div>
           </figure>
         </div>
         <div
@@ -155,6 +167,11 @@
           </nuxt-link>
         </div>
       </div>
+      <PlantLightbox
+        ref="lightboxRef"
+        v-model="showLightbox"
+        :photos="recentPhotos || []"
+      />
     </section>
   </div>
 </template>
@@ -182,4 +199,11 @@ fetchRecentNotes()
 
 const { recent: recentPhotos, fetchRecent: fetchRecentPhotos } = usePhotos()
 fetchRecentPhotos()
+
+const lightboxRef = ref<InstanceType<typeof PlantLightbox> | null>(null)
+const showLightbox = ref(false)
+
+function openPhotoInLightbox(index: number) {
+  lightboxRef.value?.open(index)
+}
 </script>
