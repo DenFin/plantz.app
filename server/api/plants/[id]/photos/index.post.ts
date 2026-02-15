@@ -1,3 +1,4 @@
+import type { Fields, Files } from 'formidable'
 import type { H3Event } from 'h3'
 import { readFile } from 'node:fs/promises'
 import consola from 'consola'
@@ -12,9 +13,10 @@ export default defineEventHandler(async (event: H3Event) => {
     consola.info('Processing photo upload for plant:', id)
 
     const form = formidable({})
-    const [fields, files] = await form.parse(event.node.req)
+    const [fields, files]: [Fields, Files] = await form.parse(event.node.req)
 
-    consola.info('Received files:', files)
+    consola.info('Received fields: ', fields)
+    consola.info('Received files: ', files)
 
     if (!files.photo?.[0]) {
       consola.error('No photo file found in request')
