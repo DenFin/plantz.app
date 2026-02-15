@@ -1,8 +1,9 @@
 <template>
   <NuxtLink
-    :key="plant.id"
+    v-if="plant?.id"
+    :key="plant?.id"
     class="block"
-    :to="`/plants/${plant.id}`"
+    :to="`/plants/${plant?.id}`"
   >
     <BaseCard>
       <template #image>
@@ -98,7 +99,7 @@ defineProps<Props>()
 
 const { many: rooms } = useRooms()
 function getRoom(id: string): Room | undefined {
-  return rooms.value?.find(room => room.id === id)
+  return rooms.value?.find(room => room?.id === id)
 }
 
 /* ===================================

@@ -35,9 +35,9 @@
     <!-- Content -->
     <section>
       <div class="flex flex-col lg:flex-row gap-8">
-        <div class="self-start w-full lg:basis-1/2 flex flex-col gap-3">
-          <div class="flex gap-2 w-full">
-            <div :class="!!plant.data?.[0].parent_plant_id ? 'basis-2/3' : 'basis-full'">
+        <div class="self-start w-full lg:basis-1/2 flex flex-wrap flex-col lg:flex-row gap-3">
+          <div class="flex flex-wrap lg:flex-row lg:flex-nowrap gap-2 w-full">
+            <div :class="!!plant.data?.[0]?.parent_plant_id ? 'basis-full lg:basis-2/3' : 'basis-full'">
               <BaseCard clas="w-full">
                 <h1 class="text-3xl font-bold mb-8">
                   {{ plant.data[0].name }}
@@ -153,11 +153,11 @@
               </BaseCard>
             </div>
             <!-- PARENT PLANT -->
-            <PlantCard v-if="plant.data?.[0].parent_plant_id" class="basis-1/3" :plant="getPlantById(plant?.data?.[0]?.parent_plant_id)" />
+            <PlantCard v-if="plant.data?.[0]?.parent_plant_id" class="lg:basis-1/3" :plant="getPlantById(plant?.data?.[0]?.parent_plant_id)" />
           </div>
 
           <!-- NOTES -->
-          <BaseCard v-for="note in plant.data?.[0].notes" :key="note.id">
+          <BaseCard v-for="note in plant.data?.[0].notes" :key="note?.id">
             <div class="flex">
               <div class="basis-full flex justify-center flex-col">
                 <p class="text-xs">
@@ -168,12 +168,12 @@
                 </h2>
               </div>
               <figure
-                v-if="!!getPhotoAttachedToNote(note.id)?.url"
+                v-if="!!getPhotoAttachedToNote(note?.id)?.url"
                 class="basis-1/6 aspect-square overflow-hidden rounded-lg ml-2"
               >
                 <img
                   class="h-full w-full object-cover"
-                  :src="getPhotoAttachedToNote(note.id)?.url"
+                  :src="getPhotoAttachedToNote(note?.id)?.url"
                   alt=""
                 >
               </figure>
@@ -181,7 +181,7 @@
           </BaseCard>
           <!-- CHILDREN -->
           <div v-if="!!plant.children.length" class="grid gap-2 grid-cols-1 lg:grid-cols-3">
-            <PlantCard v-for="child in plant.children" :key="child.id" class="basis-1/3" :plant="child" />
+            <PlantCard v-for="child in plant.children" :key="child?.id" class="basis-1/3" :plant="child" />
           </div>
         </div>
         <div class="basis-full lg:basis-1/2">
@@ -228,7 +228,7 @@
               <div
                 v-for="(photo, index) in plant.data[0].photos"
                 v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
-                :key="photo.id"
+                :key="photo?.id"
                 class="relative group aspect-square"
               >
                 <NuxtImg
@@ -265,7 +265,7 @@
       ref="lightboxRef"
       v-model="showLightbox"
       :photos="plant.data[0].photos"
-      :image-url-key="'url'"
+      image-url-key="url"
       :show-analyze-button="true"
       @close="closeLightbox"
       @analyze="handleAnalyze"
@@ -274,7 +274,7 @@
     <UModal v-model:open="showAIAnalysisModal">
       <template #content>
         <div class="p-8 flex flex-col gap-4">
-          <div class="flex items-center gap-2">
+          <div v-if="false" class="flex items-center gap-2">
             <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-primary" />
             <h2 class="text-2xl font-bold">
               KI-Analyse
@@ -383,7 +383,7 @@ import type { Plants } from '~~/db-types'
 
 const route = useRoute()
 const toast = useToast()
-const id = route.params.id
+const id = route.params?.id
 
 const { data: plant, refresh } = await useFetch <ApiResponse<Plants[]>>(`/api/plants/${id}`)
 const selectedFile = ref<File | null>(null)
@@ -507,7 +507,7 @@ function openPhotoInLightbox(index: number) {
 }
 
 function handleAnalyze(photo: any) {
-  analyzePhotoWithAI(photo.id)
+  analyzePhotoWithAI(photo?.id)
 }
 
 const isNoteModalOpen = ref(false)

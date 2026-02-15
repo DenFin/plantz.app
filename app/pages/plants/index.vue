@@ -2,7 +2,6 @@
   <div>
     <section
       v-if="plants"
-      class="pb-20"
     >
       <header class="dark:text-gray-900 flex justify-between items-center mb-4">
         <div
@@ -23,6 +22,9 @@
       </header>
       <div class="w-full">
         <div v-for="(plantsInRoom, roomName) in groupedByRoomName" :key="roomName" class="mb-8">
+          <span class="block text-sm">
+            {{ plantsInRoom?.length }} Pflanzen
+          </span>
           <h2 class="text-xl font-bold mb-2">
             {{ roomName }}
           </h2>
@@ -39,7 +41,7 @@
       to="/plants/create"
       icon="heroicons:plus"
       size="xl"
-      class="fixed bottom-5 lg:bottom-10 right-5 lg:right-10 shadow-xl font-bold"
+      class="fixed bottom-4 lg:bottom-10 right-4 lg:right-10 shadow-xl font-bold"
     >
       Add
     </UButton>
