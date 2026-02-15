@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler, getRouterParam } from 'h3'
+import sharp from 'sharp'
 import { database } from '~~/server/utils/db'
 import { uploadFile } from '~~/server/utils/minio'
 
@@ -30,9 +31,34 @@ export default defineEventHandler(async (event: H3Event) => {
       consola.info('Started database transaction')
 
       const file = files.photo[0]
-      const fileBuffer = await readFile(file.filepath)
-      consola.info('Read file buffer, size:', fileBuffer.length)
+      let fileBuffer = await readFile(file.filepath)
 
+      const beforeSize = fileBuffer.length
+      consola.info(`Original size: ${(beforeSize / 1024).toFixed(2)} KB`)
+
+      // compression
+      fileBuffer = await sharp(fileBuffer)
+        .rotate()
+        .resize({
+          width: 1000,
+          height: 1000,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .jpeg({
+          quality: 75,
+          mozjpeg: true,
+        })
+        .toBuffer()
+
+      const afterSize = fileBuffer.length
+      const saved = beforeSize - afterSize
+      const percent = ((saved / beforeSize) * 100).toFixed(1)
+
+      consola.info(`Compressed size: ${(afterSize / 1024).toFixed(2)} KB`)
+      consola.success(`Saved ${(saved / 1024).toFixed(2)} KB (${percent}%)`)
+
+      // TODO: Use userId
       // For now, using a placeholder user ID until auth is implemented
       const userId = 'default-user'
 

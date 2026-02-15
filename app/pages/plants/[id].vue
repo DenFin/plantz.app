@@ -229,31 +229,33 @@
                 v-for="(photo, index) in plant.data[0].photos"
                 v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
                 :key="photo?.id"
-                class="relative group aspect-square"
+                class=""
               >
-                <NuxtImg
-                  v-if="photo"
-                  :src="photo.url"
-                  :alt="`Photo of ${plant.data[0].name}`"
-                  class="w-full h-full object-cover rounded-lg shadow-md"
-                />
-                <div
-                  class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer"
-                  @click="openPhotoInLightbox(index)"
-                >
-                  <UButton
-                    color="error"
-                    variant="ghost"
-                    icon="i-heroicons-magnifying-glass-plus"
-                    size="xs"
-                    class="cursor-pointer !text-white"
+                <div class="bg-gray-50  rounded-lg relative group aspect-square shadow-md">
+                  <NuxtImg
+                    v-if="photo"
+                    :src="photo.url"
+                    :alt="`Photo of ${plant.data[0].name}`"
+                    class="w-full h-full object-cover"
                   />
-                  <UBadge
-                    class="absolute bottom-2"
-                    color="neutral"
+                  <div
+                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer"
+                    @click="openPhotoInLightbox(index)"
                   >
-                    {{ formatDate(photo.taken_at) }}
-                  </UBadge>
+                    <UButton
+                      color="error"
+                      variant="ghost"
+                      icon="i-heroicons-magnifying-glass-plus"
+                      size="xs"
+                      class="cursor-pointer !text-white"
+                    />
+                    <UBadge
+                      class="absolute bottom-2"
+                      color="neutral"
+                    >
+                      {{ formatDate(photo.taken_at) }}
+                    </UBadge>
+                  </div>
                 </div>
               </div>
             </div>
