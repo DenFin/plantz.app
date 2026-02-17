@@ -60,43 +60,67 @@ import 'dotenv/config'
   console.log(bucketName)
 
   for (let i = 0; i < photos.length; i++) {
-    //   const newUrl = addCompSuffix( photos[i].image_url)
+    const photoUrl = photos[i].image_url
 
-    //     // Update in der DB
-    //      const updateQuery = `
-    //         UPDATE photos
-    //         SET image_url = $1
-    //         WHERE id = $2
-    //     `
-    //     await queryDatabase(updateQuery, [newUrl,  photos[i].id])
-    //     console.log(`Updated photo ${ photos[i].id}: ${newUrl}`)
+    const objectStream = await minio.getObject(bucketName, photoUrl)
 
-    const photoUrl = photos[i].image_url.replace(/(-comp)+(\.[^.]+)$/, '$2')
-
-    const objectStream = await minio.getObject(
-      bucketName,
-      photoUrl,
-    )
     const chunks: Buffer[] = []
     for await (const chunk of objectStream) chunks.push(chunk)
     const buffer = Buffer.concat(chunks)
 
-    const resizedBuffer = await sharp(buffer)
+    const compressedBuffer = await sharp(buffer)
       .rotate()
-      .resize(800)
-      .withMetadata() // behält EXIF, wenn nötig
+      .resize({ width: 1600, withoutEnlargement: true })
       .jpeg({ quality: 80 })
       .toBuffer()
 
-    const newUrl = photoUrl.replace(/(\.[^./]+)$/, '-comp$1')
-
     await minio.putObject(
       bucketName,
-      newUrl,
-      resizedBuffer,
+      photoUrl, // SAME NAME → overwrite
+      compressedBuffer,
     )
-    console.log('Compressed image: ', newUrl)
+
+    console.log('Compressed:', photoUrl)
   }
+
+  // for (let i = 0; i < photos.length; i++) {
+  //   //   const newUrl = addCompSuffix( photos[i].image_url)
+
+  //   //     // Update in der DB
+  //   //      const updateQuery = `
+  //   //         UPDATE photos
+  //   //         SET image_url = $1
+  //   //         WHERE id = $2
+  //   //     `
+  //   //     await queryDatabase(updateQuery, [newUrl,  photos[i].id])
+  //   //     console.log(`Updated photo ${ photos[i].id}: ${newUrl}`)
+
+  //   const photoUrl = photos[i].image_url.replace(/(-comp)+(\.[^.]+)$/, '$2')
+
+  //   const objectStream = await minio.getObject(
+  //     bucketName,
+  //     photoUrl,
+  //   )
+  //   const chunks: Buffer[] = []
+  //   for await (const chunk of objectStream) chunks.push(chunk)
+  //   const buffer = Buffer.concat(chunks)
+
+  //   const resizedBuffer = await sharp(buffer)
+  //     .rotate()
+  //     .resize(800)
+  //     .withMetadata() // behält EXIF, wenn nötig
+  //     .jpeg({ quality: 80 })
+  //     .toBuffer()
+
+  //   const newUrl = photoUrl.replace(/(\.[^./]+)$/, '-comp$1')
+
+  //   await minio.putObject(
+  //     bucketName,
+  //     newUrl,
+  //     resizedBuffer,
+  //   )
+  //   console.log('Compressed image: ', newUrl)
+  // }
 })()
 
 // Database connection

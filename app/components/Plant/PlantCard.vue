@@ -16,6 +16,7 @@
             :src="plant.thumbnail.url"
             :alt="`Photo of ${plant.name}`"
             class="w-full h-full object-cover"
+            loading="lazy"
           />
           <UBadge
             class="hidden lg:block absolute top-2 right-2"

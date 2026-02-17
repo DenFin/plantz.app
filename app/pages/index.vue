@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-12">
+  <div class="flex flex-col gap-12 pb-8">
     <section>
       <div class="flex gap-1 items-center mb-4">
         <NuxtLink
