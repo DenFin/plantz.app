@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler } from 'h3'
+import sharp from 'sharp'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
@@ -27,30 +28,38 @@ export default defineEventHandler(async (event) => {
     const note_id = insertedNote.rows[0].id
     console.info('Inserted note: ', note_id)
 
-    if (files.photo?.[0]) {
-      console.info('Note has a photo!')
-      const file = files.photo[0]
-      const fileBuffer = await readFile(file.filepath)
+    if (files.photo) {
+      console.info(`Note has ${files.photo.length} photos!`)
+      
+      for (const file of files.photo) {
+        const fileBuffer = await readFile(file.filepath)
 
-      // For now, using a placeholder user ID until auth is implemented
-      const userId = 'default-user'
+        // Compress image
+        const compressedBuffer = await sharp(fileBuffer)
+          .resize(1000, 1000, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 75 })
+          .toBuffer()
 
-      // Upload to Minio with user directory
-      const objectKey = await uploadFile(
-        fileBuffer,
-        file.originalFilename || 'unnamed.jpg',
-        file.mimetype || 'image/jpeg',
-        userId,
-      )
-      console.info(`Uploaded photo: ${objectKey}`)
+        // For now, using a placeholder user ID until auth is implemented
+        const userId = 'default-user'
 
-      // Create photo record
-      const createPhotoQuery = `
-                        INSERT INTO photos (plant_id, image_url, note_id)
-                        VALUES ($1, $2, $3)
-                        RETURNING id;
-                    `
-      await client.query(createPhotoQuery, [plant_id[0], objectKey, note_id])
+        // Upload to Minio with user directory
+        const objectKey = await uploadFile(
+          compressedBuffer,
+          file.originalFilename || 'unnamed.jpg',
+          'image/jpeg',
+          userId,
+        )
+        console.info(`Uploaded photo: ${objectKey}`)
+
+        // Create photo record
+        const createPhotoQuery = `
+                          INSERT INTO photos (plant_id, image_url, note_id)
+                          VALUES ($1, $2, $3)
+                          RETURNING id;
+                      `
+        await client.query(createPhotoQuery, [plant_id[0], objectKey, note_id])
+      }
     }
 
     await client.query('COMMIT')

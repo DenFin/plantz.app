@@ -20,8 +20,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  close: []
-  analyze: [photo: PhotoItem]
+  'close': []
+  'analyze': [photo: PhotoItem]
 }>()
 
 const currentIndex = ref(0)
@@ -108,7 +108,7 @@ defineExpose({
         @click.self="close"
       >
         <div class="absolute flex w-full justify-between">
-          <div class="bg-white p-1 flex rounded-lg">
+          <div class="bg-white p-1 flex rounded-lg -translate-x-full">
             <UIcon
               name="i-heroicons:chevron-left"
               size="xs"
@@ -116,7 +116,7 @@ defineExpose({
               @click="previous"
             />
           </div>
-          <div class="bg-white p-1 flex rounded-lg">
+          <div class="bg-white p-1 flex rounded-lg translate-x-full">
             <UIcon
               name="i-heroicons:chevron-right"
               size="xs"
