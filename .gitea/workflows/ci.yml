@@ -39,8 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The automatic GITEA_TOKEN is rejected by the registry, so a personal access
+      # token is stored as a repository secret instead. It never touches the repo.
       - name: Log in to the gitea registry
-        run: echo "${{ secrets.GITEA_TOKEN }}" | docker login 192.168.178.43:3000 -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login 192.168.178.43:3000 -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
       - name: Build and push
         run: |
@@ -73,7 +75,6 @@ jobs:
       # we already need avoids both.
       - name: Ship the image to terry
         run: |
-          docker pull "$IMAGE:${{ github.sha }}"
           docker save "$IMAGE:${{ github.sha }}" | gzip \
             | ssh -i ~/.ssh/terry "$TERRY" 'gunzip | docker load'
 
