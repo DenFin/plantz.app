@@ -49,3 +49,53 @@ jobs:
             -t "$IMAGE:latest" .
           docker push "$IMAGE:${{ github.sha }}"
           docker push "$IMAGE:latest"
+
+  deploy:
+    needs: image
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: 192.168.178.43:3000/dennis/plantz.app
+      TERRY: dennis@192.168.178.27
+      REMOTE_DIR: /home/dennis/plantz
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up the deploy key
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s' "${{ secrets.TERRY_SSH_KEY }}" > ~/.ssh/terry
+          chmod 600 ~/.ssh/terry
+          ssh-keyscan -H 192.168.178.27 >> ~/.ssh/known_hosts 2>/dev/null
+
+      # terry does not trust the registry over HTTP and gaining root there to change that
+      # would restart every container on the box. Shipping the image over the SSH channel
+      # we already need avoids both.
+      - name: Ship the image to terry
+        run: |
+          docker pull "$IMAGE:${{ github.sha }}"
+          docker save "$IMAGE:${{ github.sha }}" | gzip \
+            | ssh -i ~/.ssh/terry "$TERRY" 'gunzip | docker load'
+
+      - name: Copy the compose file
+        run: scp -i ~/.ssh/terry docker-compose.yml "$TERRY:$REMOTE_DIR/docker-compose.yml"
+
+      - name: Restart the service
+        run: |
+          ssh -i ~/.ssh/terry "$TERRY" \
+            "cd $REMOTE_DIR && PLANTZ_TAG=${{ github.sha }} docker compose up -d && docker compose ps"
+
+      # Proves the app started and reached its database. A failed migration exits the
+      # container, so this is also the migration check.
+      - name: Wait for the app to answer
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://192.168.178.27:3000/api/db-status | grep -q '"status":"connected"'; then
+              echo "db-status ok after ${i}0s"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "db-status did not come up"
+          ssh -i ~/.ssh/terry "$TERRY" "cd $REMOTE_DIR && docker compose ps && docker compose logs --tail 50"
+          exit 1
