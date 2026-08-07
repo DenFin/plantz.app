@@ -2,7 +2,7 @@
 id: DEL-05
 epic: EPIC-PLANTZ-DELIVERY
 title: Automated Deploy to terry
-status: open
+status: done
 priority: P0
 depends_on: [DEL-01, DEL-04]
 repo: plantz, terry
@@ -170,8 +170,58 @@ ssh terry "docker exec postgres psql -U <user> -d plantz -c 'SELECT filename FRO
 
 ## 8. Open Questions
 
-- [ ] **Q-D3** (parent epic) settled for this epic: deploy as `root` into `/root/plantz`,
-      recorded as debt.
+- [x] **Q-D3** revisited 2026-08-07. Deploying as `root` into `/root/plantz` is not
+      possible with the access this account has: `dennis` on terry has no passwordless
+      sudo, root SSH is closed, and `/root/plantz` is unreadable. The deploy runs as
+      `dennis` into `/home/dennis/plantz` instead, which also clears the debt the original
+      answer recorded.
 - [ ] **Q-DEL5-1** Does the deploy job run automatically on every green `main` build, or
       only when manually triggered? Recommendation: automatically. A pipeline that needs a
       button is a slower version of `deploy.sh`.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-D17 No `daemon.json` on terry, and no registry pull.** Sections 3.1 and 4 call for
+  writing `/etc/docker/daemon.json` and restarting the docker daemon so terry trusts the
+  Gitea registry over HTTP. That restart takes down every container on terry, including
+  penpot, uptime-kuma, postgres and minio, and this account cannot recover from a failed
+  restart: `dennis` has no passwordless sudo and root SSH is closed, so a malformed file
+  would leave the box unreachable for repair. The operator chose the alternative on
+  2026-08-07: the deploy job ships the image over the SSH connection it already needs.
+
+  ```
+  docker save <image>:<sha> | gzip | ssh terry 'gunzip | docker load'
+  ```
+
+  The image is still built and pushed to the registry by DEL-04, so the registry stays the
+  record of what was built. terry simply never pulls from it. The DoD items about
+  `daemon.json` and `docker pull` on terry no longer apply; everything else in the DoD was
+  verified as written.
+
+- **D-D18 The deploy runs as `dennis` into `/home/dennis/plantz`.** See Q-D3 above. The
+  compose file, the `.env` and the image all live there. The `.env` was copied once from
+  the old root-owned checkout and never enters the repository.
+
+- **D-D19 A leftover container from the old compose project has to be dropped once.**
+  `plantz.app` was started from `/root/plantz` by root, and a container of that name
+  belonging to another compose project blocks the name. The deploy job removes it when it
+  finds one whose project working dir is not `/home/dennis/plantz`. After the first deploy
+  the step is a no-op.
+
+- **D-D20 Registry login needs a repository secret.** `secrets.GITEA_TOKEN`, which section
+  3.1 of DEL-04 suggested first, is rejected by the registry with `unauthorized`. A
+  personal access token is stored as `REGISTRY_TOKEN` with `REGISTRY_USER`, the fallback
+  the same section allows. Three secrets exist on the repository now: `TERRY_SSH_KEY`,
+  `REGISTRY_TOKEN`, `REGISTRY_USER`. None of them is in the repository.
+
+Observed on the first full run (`main` at `0cb1bb6`, run 98, all three jobs green):
+
+```
+docker inspect plantz.app --format '{{.Config.Image}}'
+  192.168.178.43:3000/dennis/plantz.app:0cb1bb69d5e1e476d6c399d11f7e175da22544f9
+curl http://192.168.178.27:3000/api/db-status
+  {"status":"connected", ...}
+```
+
+The migration runner adopted terry's five hand-applied files without executing them, which
+is DEL-01's adoption branch verified against the real database.

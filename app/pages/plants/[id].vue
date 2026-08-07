@@ -52,7 +52,45 @@
                   <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
                   <USeparator />
                   <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Last watered: </span>{{ lastCareLabel('watering') }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Last fertilized: </span>{{ lastCareLabel('fertilizing') }}</p>
                 </div>
+
+                <!-- CARE LOG. One tap, no modal: anything slower does not get logged. -->
+                <div class="flex flex-wrap gap-1.5 mb-8">
+                  <UButton
+                    v-for="care in CARE_BUTTONS"
+                    :key="care.type"
+                    :icon="care.icon"
+                    :loading="loggingCare === care.type"
+                    :disabled="!!loggingCare"
+                    size="sm"
+                    color="primary"
+                    variant="soft"
+                    @click="logCare(care.type)"
+                  >
+                    {{ care.label }}
+                  </UButton>
+                </div>
+
+                <div v-if="careEvents?.length" class="mb-8">
+                  <h3 class="font-bold mb-2">
+                    Recent care
+                  </h3>
+                  <ul class="flex flex-col gap-1">
+                    <li
+                      v-for="careEvent in careEvents.slice(0, 8)"
+                      :key="careEvent.id"
+                      class="flex justify-between text-sm"
+                    >
+                      <span>{{ careLabel(careEvent.type) }}</span>
+                      <span class="text-gray-500">{{ formatDate(careEvent.occurred_at) }}</span>
+                    </li>
+                  </ul>
+                </div>
+
                 <div class="flex gap-1.5">
                   <!-- Reminder and Note Buttons -->
                   <!-- (Rest of the buttons remain the same) -->
@@ -330,6 +368,44 @@ function formatDate(dateString: string) {
     month: 'long',
     day: 'numeric',
   })
+}
+
+// CARE LOG
+const CARE_BUTTONS = [
+  { type: 'watering', label: 'Water', icon: 'i-lucide-droplet' },
+  { type: 'fertilizing', label: 'Fertilize', icon: 'i-lucide-sprout' },
+  { type: 'repotting', label: 'Repot', icon: 'i-lucide-flower-2' },
+  { type: 'pruning', label: 'Prune', icon: 'i-lucide-scissors' },
+  { type: 'treatment', label: 'Treat', icon: 'i-lucide-bug' },
+] as const
+
+const { many: careEvents, fetchMany: fetchCare, log: logCareEvent, lastOf } = useCare()
+fetchCare(id as string)
+
+const loggingCare = ref<CareType | null>(null)
+
+function careLabel(type: CareType) {
+  return CARE_BUTTONS.find(care => care.type === type)?.label ?? type
+}
+
+function lastCareLabel(type: CareType) {
+  const event = lastOf(type)
+  return event ? formatDate(event.occurred_at) : 'never'
+}
+
+async function logCare(type: CareType) {
+  loggingCare.value = type
+  try {
+    await logCareEvent(id as string, type)
+    toast.add({ title: `Logged ${careLabel(type).toLowerCase()}` })
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: `Could not log ${careLabel(type).toLowerCase()}`, color: 'error' })
+  }
+  finally {
+    loggingCare.value = null
+  }
 }
 
 const showUploadButton = ref(false)

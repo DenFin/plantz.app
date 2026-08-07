@@ -1,5 +1,14 @@
 /* AUTO-GENERATED FILE. DO NOT EDIT. */
 
+export type CareEvents = {
+  id: string
+  plant_id: string
+  type: any
+  occurred_at: string
+  note: string | null
+  created_at: string | null
+}
+
 export type Notes = {
   id: string
   plant_id: string | null
@@ -25,7 +34,6 @@ export type Plants = {
   room_id: number | null
   status: any
   parent_plant_id: string | null
-  children: Array<Plants>
 }
 
 export type Reminders = {
@@ -43,6 +51,11 @@ export type Rooms = {
   icon: string
   orientation: string
   created_at: string | null
+}
+
+export type SchemaMigrations = {
+  filename: string
+  applied_at: string
 }
 
 export type Users = {

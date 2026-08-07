@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "db:types": "node --experimental-strip-types scripts/generateTypes.ts && eslint db-types.ts --fix",
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest"
   },
