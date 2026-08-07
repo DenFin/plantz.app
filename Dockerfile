@@ -14,6 +14,10 @@ RUN npm install -g pnpm && pnpm install
 
 COPY --link . .
 
+# Same reason as the CI build step: the build host has 2.8 GB of RAM and node's
+# default heap ceiling is too low for the nitro build.
+ENV NODE_OPTIONS=--max-old-space-size=2048
+
 RUN npm run build
 
 # Run

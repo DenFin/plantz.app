@@ -24,7 +24,11 @@ jobs:
 
       - run: pnpm test
 
+      # The gitea VM has 2.8 GB of RAM, so node's default heap ceiling lands near 1.4 GB
+      # and the nitro build dies on it. 2 GB leaves the rest of the box room to breathe.
       - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=2048
 
   image:
     needs: verify
