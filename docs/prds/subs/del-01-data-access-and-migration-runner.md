@@ -2,7 +2,7 @@
 id: DEL-01
 epic: EPIC-PLANTZ-DELIVERY
 title: Data Access & Migration Runner
-status: wip
+status: done
 priority: P0
 depends_on: []
 repo: plantz
@@ -192,9 +192,12 @@ for i in $(seq 1 50); do curl -so /dev/null -w '%{http_code} ' http://localhost:
 grep -rn "\.end()" server/
 # expect: no output
 
-# Failure path
+# Failure path. `pnpm dev` cannot be used here: `nuxt dev` supervises the Nitro worker
+# and keeps running after it exits, so no exit code is ever produced. The production
+# entrypoint is a single process and is what the container runs.
+pnpm build
 echo "SELECT this_is_not_valid_sql;" > server/db/migrations/999-broken.sql
-pnpm dev; echo "exit=$?"
+node .output/server/index.mjs; echo "exit=$?"
 # expect: non-zero exit, "999-broken.sql" in the message
 rm server/db/migrations/999-broken.sql
 
@@ -219,24 +222,20 @@ Postgres from the LAN. The adoption branch is the one that matters there.
 
 - [ ] **Q-D4** (parent epic) settled: migrations run in the app process. Recorded here for
       traceability.
-- [ ] **Q-D5** The failure-path command in section 6 (`pnpm dev; echo "exit=$?"`) cannot
-      return non-zero. `nuxt dev` is a supervisor: it restarts the Nitro worker and keeps
-      running, so the parent process never exits and no exit code is produced. The
-      behaviour the DoD asks for was verified on the production entrypoint instead, which
-      is what the container runs:
+- [x] **Q-D5** settled 2026-08-07: the failure-path command in section 6 was replaced.
+      `pnpm dev; echo "exit=$?"` can never return non-zero, because `nuxt dev` is a
+      supervisor: it restarts the Nitro worker and keeps running, so the parent process
+      never exits. Section 6 now builds and runs the production entrypoint instead, which
+      is the single process the container runs. Observed there:
 
-      ```bash
-      pnpm build
-      echo "SELECT this_is_not_valid_sql;" > server/db/migrations/999-broken.sql
+      ```
       node .output/server/index.mjs; echo "exit=$?"
-      # observed: exit=1, "Migration failed: 999-broken.sql: column
-      #           "this_is_not_valid_sql" does not exist"
+      # exit=1
+      # ERROR Migration failed: 999-broken.sql: column "this_is_not_valid_sql" does not exist
       ```
 
-      Under `pnpm dev` the Nitro worker does exit and every later request answers 500, so
-      no request reaches a half-migrated schema either way. Proposal: replace the `pnpm dev`
-      line in section 6 with the three lines above. Needs operator sign-off before DEL-01
-      moves to `done`.
+      Under `pnpm dev` the worker does exit and every later request answers 500, so no
+      request reaches a half-migrated schema on either path.
 
 ## 9. Implementation Notes Added During the Work
 

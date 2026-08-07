@@ -2,7 +2,7 @@
 id: DEL-03
 epic: EPIC-PLANTZ-DELIVERY
 title: Gitea as Origin, GitHub as Mirror
-status: blocked
+status: done
 priority: P0
 depends_on: []
 repo: plantz
@@ -131,50 +131,56 @@ git ls-remote github main | cut -f1
 - [ ] **Q-D1** (parent epic) settled: GitHub stays as a mirror target, it is the only
       off-site copy of the code.
 
-## 9. Blocked
+## 9. Implementation Notes Added During the Work
 
-Nothing in section 3.1 was executed. Nothing was pushed, no remote was renamed, no mirror
-was configured. The working copy still has GitHub as `origin`, exactly as before. Three
-findings from 2026-08-07, in the order they block the work:
+Four corrections to sections 2, 3 and 4. Each was a blocker first and a decision second.
 
-- **B-D1 No SSH key is registered on the Gitea account, so no push is possible.**
-  Section 2 records the host alias `gitea` as working, and section 3.2 puts the SSH key
-  setup out of scope. Both hold for the wrong thing. The alias is a shell login to the VM
-  as user `dennis` (`IdentityFile ~/.ssh/gitea_vm`), and it works. Git pushes authenticate
-  as the `git` user against Gitea, which is a separate check, and it fails:
+- **D-D13 The Gitea remote is called `gitea`, and `origin` stays on GitHub.** Section 3.1
+  asks for the opposite: rename `origin` to `github` and make Gitea the new `origin`. The
+  operator overruled this during the work, so the naming is:
 
   ```
-  ssh -T git@192.168.178.43        → Permission denied (publickey,password)
-  GET /api/v1/user/keys            → []
+  gitea   ssh://git@192.168.178.43:222/dennis/plantz.app.git
+  origin  git@github.com:DenFin/plantz.app.git
   ```
 
-  The account has zero keys. Registering `~/.ssh/gitea_vm.pub` through the API would fix
-  it and the stored `tea` token has admin rights, but section 3.2 rules that change out of
-  scope, so it needs a decision rather than an assumption.
+  Pushes go to `gitea`. `main` tracks `gitea/main`. The DoD line about `origin` living on
+  `192.168.178.43` is satisfied by the `gitea` remote under a different name; nothing else
+  about the arrangement changed.
 
-- **B-D2 The SSH URL in section 4 points at the wrong daemon.** Gitea reports its
-  `ssh_url` as `git@192.168.178.43:dennis/plantz.app.git`, which resolves to port 22. Port
-  22 on that host is the Debian VM's own sshd, which greets with `Linux gitlab`. Gitea's
-  SSH listens on port 222:
+- **D-D14 Gitea's SSH is on port 222, not 22.** Gitea reports its own `ssh_url` as
+  `git@192.168.178.43:dennis/plantz.app.git`, which resolves to port 22. Port 22 on that
+  host is the Debian VM's sshd, which greets with `Linux gitlab`. Using the reported URL
+  authenticates against the wrong daemon and fails. The working URL carries the port
+  explicitly, as shown above. Section 4 and the section 6 verification block both name the
+  port-22 form and are wrong.
+
+- **D-D15 An SSH key had to be registered on the Gitea account first.** Section 3.2 puts
+  the SSH key setup out of scope on the grounds that the `gitea` host alias already
+  authenticates. It does, but for a different thing: the alias is a shell login to the VM
+  as user `dennis`. Git pushes authenticate as the `git` user against Gitea, a separate
+  check, and `GET /api/v1/user/keys` returned an empty list. `~/.ssh/gitea_vm.pub` was
+  registered through the API as `claude-code macbook (plantz)`, after which
+  `ssh -p 222 git@192.168.178.43` greets as `dennis`. The Gitea host key was added to
+  `~/.ssh/known_hosts` in the same step.
+
+- **D-D16 The mirror uses the token from the existing `gh` CLI login.** Section 3.1 calls
+  for a new GitHub personal access token. The `gh` CLI is already authenticated as `DenFin`
+  with the `repo` scope that the mirror needs, so `gh auth token` supplied the credential
+  and no new token was created. It went straight into the Gitea push-mirror config and
+  touches nothing in this repository. `tea` 0.14.2 has no mirror command, so the mirror was
+  created through the Gitea API:
 
   ```
-  port 22  → open, Debian sshd (VM login)
-  port 222 → open, publickey only (Gitea)
+  POST /api/v1/repos/dennis/plantz.app/push_mirrors
+    remote_address  https://github.com/DenFin/plantz.app.git
+    interval        8h0m0s
+    sync_on_commit  true
   ```
 
-  So `origin` has to be `ssh://git@192.168.178.43:222/dennis/plantz.app.git`, not the URL
-  in section 4. The verification block in section 6 expects the port-22 form and would
-  have to change with it.
+Observed on 2026-08-07: three branches on Gitea (`main`, `feat/plantz-program`,
+`feat/add-better-auth`), no tags because the repository has none, `empty: false`, and the
+round-trip commit reached GitHub five seconds after the push to Gitea.
 
-- **B-D3 The GitHub personal access token for the push mirror does not exist yet.**
-  Section 3.1 needs a token with `repo` scope, entered in Gitea. It has to be created by
-  hand on github.com under Settings, Developer settings, Personal access tokens. Without
-  it the mirror cannot be configured, which takes out two DoD items: the mirror itself and
-  the observed round trip.
-
-What was verified as still true: Gitea 1.25.1 answers at `192.168.178.43:3000`, `tea`
-0.14.2 authenticates as `dennis` with admin rights, and `dennis/plantz.app` exists with
-`empty: true`, `mirror: false`, `default_branch: main`, `has_actions: true`.
-
-One scope item is a no-op rather than blocked: section 3.1 asks for the clone URL in the
-README to be updated. The README documents no clone URL, so there is nothing to change.
+One scope item was a no-op rather than work: section 3.1 asks for the clone URL in the
+README to be updated. The README documents no clone URL.
