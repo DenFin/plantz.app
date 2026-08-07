@@ -80,6 +80,20 @@ jobs:
       - name: Copy the compose file
         run: scp -i ~/.ssh/terry docker-compose.yml "$TERRY:$REMOTE_DIR/docker-compose.yml"
 
+      # Until this pipeline existed, plantz.app was started from a root-owned checkout in
+      # /root/plantz. A container of that name from another compose project blocks the
+      # name, so drop it. After the first deploy this finds nothing.
+      - name: Drop a container left over from the old compose project
+        run: |
+          ssh -i ~/.ssh/terry "$TERRY" '
+            project=$(docker inspect plantz.app \
+              --format "{{index .Config.Labels \"com.docker.compose.project.working_dir\"}}" 2>/dev/null || true)
+            if [ -n "$project" ] && [ "$project" != "/home/dennis/plantz" ]; then
+              echo "removing plantz.app from the old project at $project"
+              docker rm -f plantz.app
+            fi
+          '
+
       - name: Restart the service
         run: |
           ssh -i ~/.ssh/terry "$TERRY" \
