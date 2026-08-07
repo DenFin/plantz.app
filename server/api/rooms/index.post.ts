@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     finally {
-      await client.end()
+      client.release()
     }
   }
   catch (error) {

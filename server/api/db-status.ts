@@ -3,20 +3,23 @@ import { database } from '~~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Establish connection using the `database()` function
+    // Check a client out of the pool using the `database()` function
     const client = await database()
 
-    // Try a simple query to check the DB connection
-    const result = await client.query('SELECT NOW();')
+    try {
+      // Try a simple query to check the DB connection
+      const result = await client.query('SELECT NOW();')
 
-    // Close the client connection after the query
-    await client.end()
-
-    // Return a success response with the result
-    return {
-      status: 'connected',
-      message: 'Database is connected successfully.',
-      result: result.rows, // Returning the result of the query (current timestamp)
+      // Return a success response with the result
+      return {
+        status: 'connected',
+        message: 'Database is connected successfully.',
+        result: result.rows, // Returning the result of the query (current timestamp)
+      }
+    }
+    finally {
+      // Return the connection to the pool, never close it
+      client.release()
     }
   }
   catch (error) {

@@ -21,4 +21,7 @@ export default defineEventHandler(async (event) => {
     console.error(error)
     return { status: 404 }
   }
+  finally {
+    client.release()
+  }
 })

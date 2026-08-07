@@ -89,7 +89,7 @@ export default defineEventHandler(async (event: H3Event) => {
       throw error
     }
     finally {
-      await client.end()
+      client.release()
     }
   }
   catch (error) {

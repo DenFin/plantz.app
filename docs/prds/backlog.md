@@ -55,7 +55,7 @@ not track those changes.
 
 | # | ID | Title | Epic | Status | Depends on | Loopable | Repo |
 |---|-----|-------|------|--------|------------|----------|------|
-| 1 | [DEL-01](subs/del-01-data-access-and-migration-runner.md) | Data Access & Migration Runner | DELIVERY | open | none | yes | plantz |
+| 1 | [DEL-01](subs/del-01-data-access-and-migration-runner.md) | Data Access & Migration Runner | DELIVERY | wip | none | yes | plantz |
 | 2 | [DEL-02](subs/del-02-test-runner-and-lint-gate.md) | Test Runner & Lint Gate | DELIVERY | open | none | yes | plantz |
 | 3 | [DEL-03](subs/del-03-gitea-origin-github-mirror.md) | Gitea as Origin, GitHub as Mirror | DELIVERY | open | none | yes | plantz |
 | 4 | [DEL-04](subs/del-04-ci-pipeline.md) | CI Pipeline: Lint, Test, Build, Push | DELIVERY | open | DEL-02, DEL-03 | yes | plantz |

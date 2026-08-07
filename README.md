@@ -25,9 +25,17 @@ In it's current form, it is only designed for helping me and running in my homel
 
 ### Database migrations
 
-```bash
-psql -h 192.168.10.117 -U admin -d plantz -f server/db/migrations/<FILE_NAME>.sql
-```
+Migrations run automatically at server startup. The runner reads `server/db/migrations/`,
+skips every file already recorded in the `schema_migrations` table, and applies the rest in
+order, one transaction per file. A failing file logs its name and stops the process, so the
+app never serves traffic on a half-migrated schema.
+
+To add a migration, drop a new `.sql` file into `server/db/migrations/` and restart the
+app. Files are applied in filename order, with `initial.sql` first.
+
+On a database that was migrated by hand before this runner existed, the first start adopts
+the current files instead of executing them: it records them as applied and changes
+nothing. The marker for "already migrated" is the `plants.parent_plant_id` column.
 
 ### Deployment
 

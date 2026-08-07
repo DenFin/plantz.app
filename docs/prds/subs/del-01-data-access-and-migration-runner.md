@@ -2,7 +2,7 @@
 id: DEL-01
 epic: EPIC-PLANTZ-DELIVERY
 title: Data Access & Migration Runner
-status: open
+status: wip
 priority: P0
 depends_on: []
 repo: plantz
@@ -219,3 +219,49 @@ Postgres from the LAN. The adoption branch is the one that matters there.
 
 - [ ] **Q-D4** (parent epic) settled: migrations run in the app process. Recorded here for
       traceability.
+- [ ] **Q-D5** The failure-path command in section 6 (`pnpm dev; echo "exit=$?"`) cannot
+      return non-zero. `nuxt dev` is a supervisor: it restarts the Nitro worker and keeps
+      running, so the parent process never exits and no exit code is produced. The
+      behaviour the DoD asks for was verified on the production entrypoint instead, which
+      is what the container runs:
+
+      ```bash
+      pnpm build
+      echo "SELECT this_is_not_valid_sql;" > server/db/migrations/999-broken.sql
+      node .output/server/index.mjs; echo "exit=$?"
+      # observed: exit=1, "Migration failed: 999-broken.sql: column
+      #           "this_is_not_valid_sql" does not exist"
+      ```
+
+      Under `pnpm dev` the Nitro worker does exit and every later request answers 500, so
+      no request reaches a half-migrated schema either way. Proposal: replace the `pnpm dev`
+      line in section 6 with the three lines above. Needs operator sign-off before DEL-01
+      moves to `done`.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-D5** `initial.sql` is applied first, not in plain filename order. Sorting by filename
+  alone puts it last, and `002-add-photos-to-notes.sql` alters a table that `initial.sql`
+  creates, so a fresh database would fail on the first file. The runner pins `initial.sql`
+  to the front and orders everything else lexicographically. The `ORDER BY filename` output
+  in section 6 is unaffected, since that is the SELECT's ordering, not the apply order.
+- **D-D6** The migration files are read through `useStorage('assets:migrations')`, wired up
+  by `nitro.serverAssets` in `nuxt.config.ts`. Reading the directory from disk works in dev
+  but not in the bundled server, where `server/db/` is not shipped. The server-asset route
+  bundles the `.sql` files into `.output`, verified by running the production build against
+  an empty database.
+- **D-D7** Nitro does not await plugin initialisation, so the migration runner cannot rely
+  on finishing before the first request. `server/plugins/migrations.ts` keeps the runner's
+  promise and awaits it in a `request` hook. That is what actually holds the guarantee in
+  section 4 under "Startup ordering".
+- **D-D8** Three handlers needed slightly more than the `end()` to `release()` swap named in
+  section 3.1, because a released client keeps its open transaction and hands it to the next
+  caller:
+  - `server/api/notes/index.post.ts` and `server/api/plants/[id]/index.put.ts` never
+    released at all. Both got a `finally { client.release() }`, and `notes` also got the
+    `ROLLBACK` that the other six handlers already had.
+  - `server/api/plants/[id]/photos/[photoId]/index.delete.ts` and `index.get.ts` return 404
+    from inside the transaction. Both got a `ROLLBACK` before that early return.
+- **D-D9** The pool cannot be used by two processes at once during verification. Two
+  `pnpm dev` instances were briefly running against the same database and produced a
+  misleading "nothing pending". Worth knowing for anyone re-running section 6.
