@@ -57,7 +57,7 @@ not track those changes.
 |---|-----|-------|------|--------|------------|----------|------|
 | 1 | [DEL-01](subs/del-01-data-access-and-migration-runner.md) | Data Access & Migration Runner | DELIVERY | wip | none | yes | plantz |
 | 2 | [DEL-02](subs/del-02-test-runner-and-lint-gate.md) | Test Runner & Lint Gate | DELIVERY | done | none | yes | plantz |
-| 3 | [DEL-03](subs/del-03-gitea-origin-github-mirror.md) | Gitea as Origin, GitHub as Mirror | DELIVERY | open | none | yes | plantz |
+| 3 | [DEL-03](subs/del-03-gitea-origin-github-mirror.md) | Gitea as Origin, GitHub as Mirror | DELIVERY | blocked | none | yes | plantz |
 | 4 | [DEL-04](subs/del-04-ci-pipeline.md) | CI Pipeline: Lint, Test, Build, Push | DELIVERY | open | DEL-02, DEL-03 | yes | plantz |
 | 5 | [DEL-05](subs/del-05-automated-deploy-to-terry.md) | Automated Deploy to terry | DELIVERY | open | DEL-01, DEL-04 | yes | plantz, terry |
 | 6 | [CARE-01](subs/care-01-care-events.md) | Care Events | CARE | open | DEL-01 | yes | plantz |
