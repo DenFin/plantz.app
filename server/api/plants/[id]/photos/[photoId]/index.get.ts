@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import process from 'node:process'
 import { defineEventHandler } from 'h3'
 import { database } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'

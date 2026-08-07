@@ -1,7 +1,7 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
 // @vitest-environment nuxt
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { expect, it } from 'vitest'
-import BaseHeadline from '../../../components/BaseHeadline/BaseHeadline.vue'
+import BaseHeadline from './BaseHeadline.vue'
 
 it('should render correct headline tag', async () => {
   const component = await mountSuspended(BaseHeadline, {
@@ -12,5 +12,6 @@ it('should render correct headline tag', async () => {
     },
   })
   const header = component.find('h1')
-  expect(header).toBeDefined()
+  expect(header.exists()).toBe(true)
+  expect(header.text()).toBe('Test Headline')
 })

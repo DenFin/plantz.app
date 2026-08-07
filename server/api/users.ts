@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import { queryDatabase } from '../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     // Example: Get all users from the "users" table
     const users = await queryDatabase('SELECT * FROM users')

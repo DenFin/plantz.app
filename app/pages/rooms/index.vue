@@ -4,7 +4,7 @@
       v-if="rooms"
       class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-4"
     >
-      <BaseCard v-for="room in rooms">
+      <BaseCard v-for="room in rooms" :key="room.id">
         <h3 class="font-bold text-md lg:text-lg">
           {{ room.name }}
         </h3>

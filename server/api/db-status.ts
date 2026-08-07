@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import { database } from '~~/server/utils/db'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     // Check a client out of the pool using the `database()` function
     const client = await database()

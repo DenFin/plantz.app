@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
     if (files.photo) {
       console.info(`Note has ${files.photo.length} photos!`)
-      
+
       for (const file of files.photo) {
         const fileBuffer = await readFile(file.filepath)
 

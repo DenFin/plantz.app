@@ -2,7 +2,7 @@
 id: DEL-02
 epic: EPIC-PLANTZ-DELIVERY
 title: Test Runner & Lint Gate
-status: open
+status: done
 priority: P0
 depends_on: []
 repo: plantz
@@ -89,3 +89,33 @@ grep -c amqplib package.json   # expect: 0
 ## 8. Open Questions
 
 None. Q-D2 and Q-D3 in the parent epic do not touch this sub-PRD.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-D10** Section 3.2 says "Lint already works". It did not. On `4d935f8` the command
+  `pnpm lint` exits 1 with 98 errors, and the DoD requires it to exit 0, so the errors had
+  to be cleared as part of this sub-PRD. What was wrong, and how it was fixed:
+  - 40 `node/prefer-global/process` and `node/prefer-global/buffer`: added the explicit
+    `import process from 'node:process'` and `import { Buffer } from 'node:buffer'` the
+    rule asks for, across nine files.
+  - 17 `unused-imports/no-unused-vars`: unused `event` parameters dropped from five
+    handlers; genuinely unused declarations in `app/pages/plants/[id].vue` renamed with the
+    leading underscore the rule allows. Nothing was deleted, because dead code in a page is
+    a separate decision from a lint gate.
+  - 4 Vue template errors: a missing `:key` in `app/pages/rooms/index.vue`, an unused
+    `index` binding, and a `v-if` sitting on the same element as a `v-for`. The last one
+    became `v-for="… in plant.data[0].photos ?? []"`, which renders the same and drops the
+    guard the rule objects to.
+  - The rest (trailing spaces, comma dangle, import order) came out with `pnpm lint:fix`.
+  - The 29 remaining `no-console` findings are warnings, not errors, and do not affect the
+    exit code. They stay.
+- **D-D11** `BaseHeadline.test.ts` never ran, and it could not have: it imported the
+  component as `../../../components/BaseHeadline/BaseHeadline.vue`, a path from before the
+  Nuxt 4 move into `app/`. Corrected to `./BaseHeadline.vue`. The assertion was
+  `expect(header).toBeDefined()`, which passes even when the element is absent, since
+  `find()` always returns a wrapper object. It now asserts `header.exists()` and the
+  rendered text, which is what the test name claims to check.
+- **D-D12** `pnpm test` runs `vitest run --reporter=verbose`. The default reporter prints
+  only the summary when stdout is not a terminal, so the DoD line "the run includes
+  `BaseHeadline.test.ts` by name in its output" fails in CI with the default. `test:watch`
+  keeps the default reporter.
