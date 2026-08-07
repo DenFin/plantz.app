@@ -2,7 +2,7 @@
 id: CARE-02
 epic: EPIC-PLANTZ-CARE
 title: Reminders End to End
-status: open
+status: done
 priority: P0
 depends_on: [DEL-01]
 repo: plantz
@@ -145,10 +145,43 @@ pnpm test   # expect: exit 0
 
 ## 8. Open Questions
 
-- [ ] **Q-CARE2-1** Does a reminder require a plant, or can it be standalone ("buy
+- [x] **Q-CARE2-1** settled as recommended: a reminder requires a plant, or can it be standalone ("buy
       fertilizer")? Recommendation: require a plant. `plant_id` is already a foreign key,
       and a general todo list is a different application.
-- [ ] **Q-CARE2-2** Should completing a "water the fern" reminder also log a watering care
+- [x] **Q-CARE2-2** settled as recommended, no coupling. Completing a "water the fern" reminder also log a watering care
       event? Recommendation: no, not automatically. The two actions mean different things
       and coupling them makes the care history a guess. Revisit once both features have
       been used for a while.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-C2 The recurrence interval is built with `make_interval`, not string concatenation.**
+  The first version wrote `now() + ($2 || ' days')::interval` and reused `$2` for the
+  `recurrence_days` column. Concatenating binds the parameter as text, and Postgres then
+  refuses it for an integer column: `column "recurrence_days" is of type integer but
+  expression is of type text`. `now() + make_interval(days => $2::int)` keeps one integer
+  parameter for both uses.
+
+  The failure was useful: it proved the transaction requirement from section 4. The
+  `UPDATE` that set `completed_at` had already run when the `INSERT` failed, and
+  `completed_at` was still `NULL` afterwards, so the rollback did its job.
+
+- **D-C3 Completing an already completed reminder answers 409.** Section 3.1 does not say
+  what should happen, and without a guard a double tap would set a second `completed_at`
+  and insert a second successor. The row is selected `FOR UPDATE` and a completed one is
+  refused.
+
+- **D-C4 The start page awaits its reminder fetch.** The other data on
+  `app/pages/index.vue` is loaded without `await`, which is fine for counters that appear
+  a moment later. The reminder list is the reason the page is worth opening, so it is
+  awaited and arrives in the server-rendered HTML.
+
+- **Q-CARE2-1 applied at the endpoint, not in the schema.** `reminders.plant_id` stays
+  nullable, because section 3.1 lists only `completed_at`, `recurrence_days` and the index
+  for migration 006. `POST /api/reminders` answers 400 without a `plant_id`.
+
+Verified on 2026-08-07 against a local Postgres: an overdue recurring reminder appears
+under `filter=overdue`, completing it produces exactly one successor dated seven days
+after the completion, completing a non-recurring one produces none and shrinks the open
+list by one, and the start page server-renders both an overdue and an upcoming entry with
+a completion control.

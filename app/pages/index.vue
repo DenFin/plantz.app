@@ -72,6 +72,59 @@
         </BaseCard>
       </div>
     </section>
+    <!-- REMINDERS. The start page is what gets opened, so this is where they belong. -->
+    <section id="reminders">
+      <h2 class="font-bold text-xl mb-3">
+        Reminders
+      </h2>
+      <div
+        v-if="openReminders?.length"
+        class="flex flex-col gap-3"
+      >
+        <BaseCard
+          v-for="reminder in openReminders"
+          :key="reminder.id"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col">
+              <span
+                class="text-xs"
+                :class="isOverdue(reminder) ? 'text-red-600 font-bold' : 'text-gray-500'"
+              >
+                {{ isOverdue(reminder) ? 'Overdue since' : 'Due' }}
+                {{ formatDate(reminder.remind_at) }}
+                <template v-if="reminder.recurrence_days">
+                  &middot; every {{ reminder.recurrence_days }} days
+                </template>
+              </span>
+              <NuxtLink
+                :to="`/plants/${reminder.plant_id}`"
+                class="font-bold"
+              >
+                {{ reminder.plant_name }}
+              </NuxtLink>
+              <p>{{ reminder.message }}</p>
+            </div>
+            <UButton
+              icon="i-heroicons-check"
+              size="sm"
+              variant="soft"
+              :loading="completingReminder === reminder.id"
+              :disabled="!!completingReminder"
+              @click="completeReminder(reminder)"
+            >
+              Done
+            </UButton>
+          </div>
+        </BaseCard>
+      </div>
+      <div
+        v-else
+        class="bg-emerald-200 rounded-lg p-4"
+      >
+        <p>Nothing is due. Open a plant to set a reminder.</p>
+      </div>
+    </section>
     <section
       id="recent-notes"
       class="grid lg:grid-cols-2  gap-4"
@@ -199,6 +252,40 @@ fetchRecentNotes()
 
 const { recent: recentPhotos, fetchRecent: fetchRecentPhotos } = usePhotos()
 fetchRecentPhotos()
+
+// REMINDERS
+const toast = useToast()
+const { many: openReminders, fetchMany: fetchReminders, complete } = useReminders()
+// Awaited, unlike the counters above: the list has to be in the server-rendered page,
+// not appear a moment after hydration.
+await fetchReminders('open')
+
+const completingReminder = ref<string | null>(null)
+
+function isOverdue(reminder: Reminder) {
+  return new Date(reminder.remind_at).getTime() < Date.now()
+}
+
+async function completeReminder(reminder: Reminder) {
+  completingReminder.value = reminder.id
+  try {
+    const response = await complete(reminder.id)
+    const successor = response.data?.successor
+    toast.add({
+      title: successor
+        ? `Done. Next on ${formatDate(successor.remind_at)}`
+        : 'Reminder completed',
+    })
+    await fetchReminders('open')
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not complete the reminder', color: 'error' })
+  }
+  finally {
+    completingReminder.value = null
+  }
+}
 
 const lightboxRef = ref<InstanceType<typeof PlantLightbox> | null>(null)
 const showLightbox = ref(false)

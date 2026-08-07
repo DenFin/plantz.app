@@ -91,8 +91,87 @@
                   </ul>
                 </div>
 
+                <!-- REMINDERS -->
+                <div class="mb-8">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold">
+                      Reminders
+                    </h3>
+                    <UButton
+                      icon="i-heroicons-plus"
+                      size="xs"
+                      variant="soft"
+                      @click="isReminderModalOpen = true"
+                    >
+                      Add
+                    </UButton>
+                  </div>
+                  <ul
+                    v-if="plantReminders.length"
+                    class="flex flex-col gap-1"
+                  >
+                    <li
+                      v-for="reminder in plantReminders"
+                      :key="reminder.id"
+                      class="flex items-center justify-between gap-2 text-sm"
+                    >
+                      <span>
+                        {{ formatDate(reminder.remind_at) }}
+                        <span class="text-gray-500">{{ reminder.message }}</span>
+                        <span
+                          v-if="reminder.recurrence_days"
+                          class="text-gray-500"
+                        >
+                          (every {{ reminder.recurrence_days }} days)
+                        </span>
+                      </span>
+                      <UButton
+                        icon="i-heroicons-check"
+                        size="xs"
+                        variant="ghost"
+                        :loading="completingReminder === reminder.id"
+                        :disabled="!!completingReminder"
+                        @click="completeReminder(reminder)"
+                      />
+                    </li>
+                  </ul>
+                  <p
+                    v-else
+                    class="text-sm text-gray-500"
+                  >
+                    No open reminders.
+                  </p>
+                </div>
+
+                <UModal v-model:open="isReminderModalOpen" title="New reminder">
+                  <template #body>
+                    <div class="flex flex-col gap-3">
+                      <UInput
+                        v-model="remindAt"
+                        type="datetime-local"
+                      />
+                      <UInput
+                        v-model="message"
+                        placeholder="What should happen?"
+                      />
+                      <UInput
+                        v-model.number="recurrenceDays"
+                        type="number"
+                        min="1"
+                        placeholder="Repeat every N days (optional)"
+                      />
+                      <UButton
+                        :loading="isSavingReminder"
+                        @click="addReminder"
+                      >
+                        Create
+                      </UButton>
+                    </div>
+                  </template>
+                </UModal>
+
                 <div class="flex gap-1.5">
-                  <!-- Reminder and Note Buttons -->
+                  <!-- Note Buttons -->
                   <!-- (Rest of the buttons remain the same) -->
                 </div>
               </BaseCard>
@@ -648,14 +727,76 @@ function getPhotosAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.filter(photo => photo.note_id === noteId)
 }
 
-const _isReminderModalOpen = ref(false)
-
+// REMINDERS
+const isReminderModalOpen = ref(false)
 const message = ref('')
-const remindAt = ref(null)
+const remindAt = ref('')
+const recurrenceDays = ref<number | null>(null)
+const isSavingReminder = ref(false)
 
-async function _addReminder() {
-  console.log('message', message.value)
-  console.log('remindAt', remindAt.value)
+const { fetchForPlant, create: createReminder, complete: completeReminderApi } = useReminders()
+const plantReminders = ref<Reminder[]>([])
+const completingReminder = ref<string | null>(null)
+
+async function loadPlantReminders() {
+  try {
+    const response = await fetchForPlant(id as string, 'open')
+    plantReminders.value = response.data ?? []
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+loadPlantReminders()
+
+async function addReminder() {
+  if (!remindAt.value) {
+    toast.add({ title: 'Pick a date first', color: 'error' })
+    return
+  }
+  isSavingReminder.value = true
+  try {
+    await createReminder({
+      plant_id: id as string,
+      remind_at: remindAt.value,
+      message: message.value,
+      recurrence_days: recurrenceDays.value || null,
+    })
+    toast.add({ title: 'Reminder created' })
+    isReminderModalOpen.value = false
+    message.value = ''
+    remindAt.value = ''
+    recurrenceDays.value = null
+    await loadPlantReminders()
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not create the reminder', color: 'error' })
+  }
+  finally {
+    isSavingReminder.value = false
+  }
+}
+
+async function completeReminder(reminder: Reminder) {
+  completingReminder.value = reminder.id
+  try {
+    const response = await completeReminderApi(reminder.id)
+    const successor = response.data?.successor
+    toast.add({
+      title: successor
+        ? `Done. Next on ${formatDate(successor.remind_at)}`
+        : 'Reminder completed',
+    })
+    await loadPlantReminders()
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not complete the reminder', color: 'error' })
+  }
+  finally {
+    completingReminder.value = null
+  }
 }
 
 const isAnalyzing = ref(false)
