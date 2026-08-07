@@ -1,0 +1,47 @@
+name: CI
+
+# Every branch, not just main. The whole program runs on feat/plantz-program, so a
+# main-only trigger would stay silent until the merge.
+on: push
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: pnpm
+
+      # Frozen: a run that quietly updates the lockfile builds something no one tested.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+  image:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: 192.168.178.43:3000/dennis/plantz.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to the gitea registry
+        run: echo "${{ secrets.GITEA_TOKEN }}" | docker login 192.168.178.43:3000 -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push
+        run: |
+          docker build --build-arg BUILD_TAG="${{ github.sha }}" \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"

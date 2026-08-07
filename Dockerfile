@@ -19,8 +19,12 @@ RUN npm run build
 # Run
 FROM base
 
+# The commit the image was built from. INS-01 reports it as plantz_build_info.
+ARG BUILD_TAG=dev
+
 ENV PORT=$PORT
 ENV NODE_ENV=production
+ENV BUILD_TAG=$BUILD_TAG
 
 COPY --from=build /src/.output /src/.output
 
