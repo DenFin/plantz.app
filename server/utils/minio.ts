@@ -1,4 +1,6 @@
+import type { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
+import process from 'node:process'
 import * as Minio from 'minio'
 
 export function createMinioClient() {
@@ -38,7 +40,6 @@ export async function uploadFile(fileBuffer: Buffer, originalFilename: string, c
   const bucketName = process.env.MINIO_BUCKET || 'plantz'
 
   // Create a unique filename using UUID and original filename
-  const extension = originalFilename.split('.').pop()
   const uniqueFilename = `${userId}/${randomUUID()}-${originalFilename}`
 
   try {

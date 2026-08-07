@@ -1,8 +1,9 @@
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
 import { defineEventHandler } from 'h3'
+import sharp from 'sharp'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
-import sharp from 'sharp'
-import { Readable } from 'stream'
 
 export default defineEventHandler(async () => {
   try {
@@ -17,7 +18,7 @@ export default defineEventHandler(async () => {
     for (const plant of plants) {
       if (plant.image_url) {
         const objectStream = await minioClient.getObject(bucketName, plant.image_url)
-        
+
         // Convert stream to buffer
         const chunks = []
         for await (const chunk of objectStream) {
@@ -39,7 +40,7 @@ export default defineEventHandler(async () => {
         plant.image_url = await minioClient.presignedGetObject(
           bucketName,
           correctedObjectKey,
-          24 * 60 * 60 // URL expires in 24 hours
+          24 * 60 * 60, // URL expires in 24 hours
         )
       }
     }

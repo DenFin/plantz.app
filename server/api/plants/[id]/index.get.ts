@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import process from 'node:process'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'

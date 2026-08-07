@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import process from 'node:process'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
 import { database } from '~~/server/utils/db'
@@ -25,6 +26,8 @@ export default defineEventHandler(async (event: H3Event) => {
       const photoResult = await client.query(getPhotoQuery, [photoId, plantId])
 
       if (photoResult.rows.length === 0) {
+        // The client goes back to the pool below, so the open transaction has to end here
+        await client.query('ROLLBACK')
         return { error: 'Photo not found', status: 404 }
       }
 
@@ -57,7 +60,7 @@ export default defineEventHandler(async (event: H3Event) => {
       throw error
     }
     finally {
-      await client.end()
+      client.release()
     }
   }
   catch (error) {

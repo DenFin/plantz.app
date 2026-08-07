@@ -14,8 +14,8 @@ export default defineEventHandler(async (event) => {
     consola.error('plant_id is required')
     return { status: 400 }
   }
+  const client = await database()
   try {
-    const client = await database()
     await client.query('BEGIN')
     console.log('plant_id', plant_id)
     console.log('note', note)
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
     if (files.photo) {
       console.info(`Note has ${files.photo.length} photos!`)
-      
+
       for (const file of files.photo) {
         const fileBuffer = await readFile(file.filepath)
 
@@ -66,7 +66,13 @@ export default defineEventHandler(async (event) => {
     return { status: 201, data: insertedNote }
   }
   catch (error) {
+    // A client released with an open transaction hands that transaction to the next
+    // caller who checks it out, so the rollback has to happen before the release.
+    await client.query('ROLLBACK')
     console.error(error)
     return { status: 400 }
+  }
+  finally {
+    client.release()
   }
 })

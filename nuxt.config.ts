@@ -1,3 +1,6 @@
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt', '@vueuse/nuxt', '@nuxt/eslint'],
@@ -21,6 +24,13 @@ export default defineNuxtConfig({
     },
   },
   compatibilityDate: '2024-11-01',
+  nitro: {
+    // Makes the migration files readable at runtime through `useStorage('assets:migrations')`,
+    // in dev and in the bundled server alike.
+    serverAssets: [
+      { baseName: 'migrations', dir: fileURLToPath(new URL('./server/db/migrations', import.meta.url)) },
+    ],
+  },
   vite: {
     server: {
       allowedHosts: ['plantz.app.local'],

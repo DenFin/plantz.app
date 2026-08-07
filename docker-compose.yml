@@ -1,9 +1,10 @@
 services:
   plantz:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: plantz.app:latest
+    # No build key: the image is built in CI and loaded onto terry by the deploy job.
+    # The name stays registry-qualified so it can never be confused with a stale local
+    # `plantz.app:latest`. terry does not pull it, hence pull_policy.
+    image: 192.168.178.43:3000/dennis/plantz.app:${PLANTZ_TAG:-latest}
+    pull_policy: never
     container_name: plantz.app
     env_file:
       - .env

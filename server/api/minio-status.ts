@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import { checkMinioConnection } from '../utils/minio'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     const isConnected = await checkMinioConnection()
     return {

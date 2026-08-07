@@ -77,17 +77,17 @@
                     </h2>
                   </div>
                 </div>
-                <div 
-                  v-if="getPhotosAttachedToNote(note?.id).length > 0" 
+                <div
+                  v-if="getPhotosAttachedToNote(note?.id).length > 0"
                   class="overflow-x-auto mt-2"
                 >
                   <div class="flex gap-2 pb-2">
                     <figure
-                      v-for="(photo, index) in getPhotosAttachedToNote(note?.id)"
+                      v-for="photo in getPhotosAttachedToNote(note?.id)"
                       :key="photo?.id"
                       class="aspect-square w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg"
                       @click="openPhotoInLightbox(
-                        plant.data[0].photos.findIndex(p => p.id === photo?.id)
+                        plant.data[0].photos.findIndex(p => p.id === photo?.id),
                       )"
                     >
                       <img
@@ -107,7 +107,7 @@
             <PlantCard v-for="child in plant.children" :key="child?.id" class="basis-1/3" :plant="child" />
           </div>
         </div>
-        
+
         <div class="order-1 lg:order-2 w-full">
           <!-- Photos Section -->
           <div class="space-y-4 mb-8">
@@ -149,8 +149,7 @@
                 </div>
               </div>
               <div
-                v-for="(photo, index) in plant.data[0].photos"
-                v-if="plant.data[0].photos && plant.data[0].photos.length > 0"
+                v-for="(photo, index) in plant.data[0].photos ?? []"
                 :key="photo?.id"
                 class=""
               >
@@ -348,18 +347,18 @@ function handleFileChange(event: Event) {
     else if (event.currentTarget?.closest('#note-photo-upload')) {
       const newFiles = Array.from(input.files)
       noteFiles.value = [...noteFiles.value, ...newFiles]
-      
+
       // Generate preview URLs for new files
       const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file))
       notePreviewUrls.value = [...notePreviewUrls.value, ...newPreviewUrls]
-      
+
       // Reset the file input
       input.value = ''
     }
   }
 }
 
-function removeNoteImage(index: number) {
+function _removeNoteImage(index: number) {
   noteFiles.value.splice(index, 1)
   notePreviewUrls.value.splice(index, 1)
 }
@@ -417,7 +416,7 @@ async function uploadPhoto() {
   }
 }
 
-async function deletePhoto(photoId: string) {
+async function _deletePhoto(photoId: string) {
   try {
     const response = await $fetch(`/api/plants/${id}/photos/${photoId}`, {
       method: 'DELETE',
@@ -457,35 +456,35 @@ function handleAnalyze(photo: any) {
 
 const isNoteModalOpen = ref(false)
 const note = ref('')
-async function insertNote() {
+async function _insertNote() {
   try {
     const formData = new FormData()
     formData.append('plant_id', id)
     formData.append('note', note.value)
-    
+
     // Append all note files
-    noteFiles.value.forEach((file, index) => {
+    noteFiles.value.forEach((file) => {
       formData.append('photo', file)
     })
 
     console.log('Uploading note with photos:', formData)
-    const response = await $fetch('/api/notes', {
+    const _response = await $fetch('/api/notes', {
       method: 'POST',
       body: formData,
       onResponse: (response) => {
         toast.add({
           title: 'Successfully inserted note.',
         })
-        
+
         // Reset everything
         isNoteModalOpen.value = false
         note.value = ''
         noteFiles.value = []
         notePreviewUrls.value.forEach(url => URL.revokeObjectURL(url))
         notePreviewUrls.value = []
-        
+
         refresh()
-        
+
         console.log(response)
         switch (response.response?.status) {
           case 200:
@@ -494,7 +493,7 @@ async function insertNote() {
           case 400:
             toast.add({
               title: 'Error inserting note',
-              color: 'error'
+              color: 'error',
             })
             break
         }
@@ -505,7 +504,7 @@ async function insertNote() {
     console.error(e)
     toast.add({
       title: 'Error inserting note',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -519,7 +518,7 @@ const plantToEdit = ref({
   room_id: plant.value?.data?.[0]?.room_id,
 })
 
-watch(plant, (newVal, oldVal) => {
+watch(plant, () => {
   plantToEdit.value = {
     id: plant.value?.data?.[0]?.id,
     name: plant.value?.data?.[0]?.name,
@@ -573,12 +572,12 @@ function getPhotosAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.filter(photo => photo.note_id === noteId)
 }
 
-const isReminderModalOpen = ref(false)
+const _isReminderModalOpen = ref(false)
 
 const message = ref('')
 const remindAt = ref(null)
 
-async function addReminder() {
+async function _addReminder() {
   console.log('message', message.value)
   console.log('remindAt', remindAt.value)
 }
@@ -627,7 +626,7 @@ async function analyzePhotoWithAI(photoId?: string) {
   }
 }
 
-function openContextMenu(event, planId) {
+function openContextMenu(event, _planId) {
   console.log(event)
   event.preventDefault()
   console.log(plantId)

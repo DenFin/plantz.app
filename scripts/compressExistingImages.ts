@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
 import * as Minio from 'minio'
 import pg from 'pg'
 import sharp from 'sharp'
@@ -43,7 +45,7 @@ import 'dotenv/config'
     })
   }
 
-  function addCompSuffix(url: string) {
+  function _addCompSuffix(url: string) {
     const dotIndex = url.lastIndexOf('.')
     if (dotIndex === -1)
       return url // kein Punkt gefunden
