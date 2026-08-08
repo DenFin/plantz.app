@@ -2,7 +2,7 @@
 id: INS-02
 epic: EPIC-PLANTZ-INSIGHT
 title: Prometheus Job on cerf
-status: open
+status: done
 priority: P1
 depends_on: [INS-01]
 repo: homelab-root
@@ -123,3 +123,50 @@ ansible-playbook -i ansible/inventory/hosts.yml <monitoring playbook>
 
 None. The node_exporter question is settled by the brainstorm's scope boundaries and is
 tracked separately in `homelab-root/TODOS.md`.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-I10 The config reload needs a container restart, not a SIGHUP.** Ansible's `template`
+  module writes a new file and renames it into place, which gives the file a new inode. The
+  prometheus container bind-mounts the file itself, not its directory, so the running
+  container keeps reading the old inode: the host file carried the `plantz` job while
+  `docker exec prometheus grep job_name: plantz /etc/prometheus/prometheus.yml` found
+  nothing, and a SIGHUP reloaded the stale content. This is why the role's handler restarts
+  the stack rather than reloading it. Worth knowing before debugging a target that is
+  configured and absent at the same time.
+
+- **B-I1 The monitoring playbook cannot finish, for a reason that predates this work.**
+  The task "Run AdGuard stats collector once now" fails:
+
+  ```
+  adguard-stats-collector.py[…]: adguard-stats-collector: HTTP Error 401: Unauthorized
+  ```
+
+  AdGuard rejects the collector's credentials. Nothing in this sub-PRD touches AdGuard, and
+  the failing task sits after the Prometheus template task in the same role. Two
+  consequences:
+
+  - The play aborts before handlers run, so the container restart had to be triggered by
+    hand this once.
+  - The DoD line "the monitoring playbook applies cleanly" cannot be satisfied while this
+    is broken. It is recorded here rather than quietly ticked off.
+
+  AE7 was still verifiable and passed: a second run reports `changed=0`, so the template
+  change does not trigger a restart on every run. The recap reads
+  `ok=30 changed=0 failed=1`, where the failure is the AdGuard task.
+
+## 10. Verification Results, 2026-08-08
+
+| Check | Expected | Observed |
+|---|---|---|
+| Reachability before committing | metrics readable from the container | `docker exec prometheus wget -qO- http://192.168.178.27:3000/metrics` returned the `plantz_build_info` header |
+| Target health (AE1) | up, host terry, no error | `health: up`, `{'host': 'terry', 'instance': '192.168.178.27:3000', 'job': 'plantz'}`, `lastError: ''` |
+| `plantz_build_info` queryable | one series | `version="2b21f894383e7d6f4d31f50a69b3afb9a2d52a0e"` = 1 |
+| Domain data arriving | series present | `plantz_plants` 7 series, `plantz_reminders_overdue` 1 series |
+| Idempotence (AE7) | changed=0 | `changed=0` on the second run |
+| node_exporter / cadvisor on terry | none installed | none; terry was not touched by this sub-PRD |
+
+`plantz_care_events_total` and `plantz_plant_care_age_seconds` have no series yet. That is
+correct rather than broken: terry's `care_events` table is empty and no plant has a
+watering interval, because the features reached terry with this same deploy. The series
+appear as soon as the first care action is logged.

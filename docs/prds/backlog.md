@@ -65,7 +65,7 @@ not track those changes.
 | 8 | [CARE-03](subs/care-03-plant-status-history.md) | Plant Status History | CARE | done | DEL-01 | yes | plantz |
 | 9 | [CARE-04](subs/care-04-watering-due-dates.md) | Watering Due Dates | CARE | done | CARE-01 | yes | plantz |
 | 10 | [INS-01](subs/ins-01-metrics-endpoint-and-sampler.md) | Metrics Endpoint & Sampler | INSIGHT | done | DEL-01, CARE-01, CARE-02, CARE-04 | yes | plantz |
-| 11 | [INS-02](subs/ins-02-prometheus-job-and-node-exporter.md) | Prometheus Job on cerf | INSIGHT | open | INS-01 | yes | homelab-root |
+| 11 | [INS-02](subs/ins-02-prometheus-job-and-node-exporter.md) | Prometheus Job on cerf | INSIGHT | done | INS-01 | yes | homelab-root |
 | 12 | [INS-03](subs/ins-03-grafana-board.md) | Grafana Board `Service: Plantz` | INSIGHT | open | INS-02 | yes | homelab-root |
 | 13 | [OPS-01](subs/ops-01-backup-postgres-and-minio.md) | Backup for terry Postgres & MinIO | OPS | open | none | confirm | homelab-root, terry |
 | 14 | [OPS-02](subs/ops-02-remote-access.md) | Remote Access via Tunnel | OPS | open | DEL-05 | no | terry |
