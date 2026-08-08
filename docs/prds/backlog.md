@@ -62,7 +62,7 @@ not track those changes.
 | 5 | [DEL-05](subs/del-05-automated-deploy-to-terry.md) | Automated Deploy to terry | DELIVERY | done | DEL-01, DEL-04 | yes | plantz, terry |
 | 6 | [CARE-01](subs/care-01-care-events.md) | Care Events | CARE | done | DEL-01 | yes | plantz |
 | 7 | [CARE-02](subs/care-02-reminders-end-to-end.md) | Reminders End to End | CARE | done | DEL-01 | yes | plantz |
-| 8 | [CARE-03](subs/care-03-plant-status-history.md) | Plant Status History | CARE | open | DEL-01 | yes | plantz |
+| 8 | [CARE-03](subs/care-03-plant-status-history.md) | Plant Status History | CARE | done | DEL-01 | yes | plantz |
 | 9 | [CARE-04](subs/care-04-watering-due-dates.md) | Watering Due Dates | CARE | open | CARE-01 | yes | plantz |
 | 10 | [INS-01](subs/ins-01-metrics-endpoint-and-sampler.md) | Metrics Endpoint & Sampler | INSIGHT | open | DEL-01, CARE-01, CARE-02, CARE-04 | yes | plantz |
 | 11 | [INS-02](subs/ins-02-prometheus-job-and-node-exporter.md) | Prometheus Job on cerf | INSIGHT | open | INS-01 | yes | homelab-root |

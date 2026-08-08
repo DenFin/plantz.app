@@ -24,6 +24,15 @@ export type Photos = {
   note_id: string | null
 }
 
+export type PlantStatusEvents = {
+  id: string
+  plant_id: string
+  from_status: any | null
+  to_status: any
+  changed_at: string
+  note: string | null
+}
+
 export type Plants = {
   id: string
   user_id: string | null
@@ -42,6 +51,8 @@ export type Reminders = {
   remind_at: string
   message: string | null
   created_at: string | null
+  completed_at: string | null
+  recurrence_days: number | null
 }
 
 export type Rooms = {

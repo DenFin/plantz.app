@@ -1,18 +1,16 @@
 import consola from 'consola'
+import { changePlantStatus } from '~~/server/utils/plantStatus'
 
 export default defineEventHandler(async (event) => {
   try {
     consola.info('Burying plant')
     const id = getRouterParam(event, 'id')
-    const query = `
-        UPDATE plants
-        SET status = $2
-        WHERE id = $1
-        `
-    const values = [id, 'dead']
-    const plants = await queryDatabase(query, values)
 
-    return { status: 200, data: plants }
+    // Goes through the same helper as the PUT endpoint, so burying leaves a history
+    // event exactly like any other transition.
+    const changeEvent = await changePlantStatus(id as string, 'dead')
+
+    return { status: 200, data: changeEvent }
   }
   catch (error) {
     consola.error('Error burying plant:', error)

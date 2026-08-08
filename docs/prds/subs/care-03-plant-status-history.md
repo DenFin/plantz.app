@@ -2,7 +2,7 @@
 id: CARE-03
 epic: EPIC-PLANTZ-CARE
 title: Plant Status History
-status: open
+status: done
 priority: P1
 depends_on: [DEL-01]
 repo: plantz
@@ -144,9 +144,45 @@ pnpm test   # expect: exit 0
 
 ## 8. Open Questions
 
-- [ ] **Q-CARE3-1** Should a status change carry a note ("leaves yellowing")? The column is
+- [x] **Q-CARE3-1** settled as recommended: the `note` column exists and is nullable, the edit modal offers no field for it yet. Should a status change carry a note ("leaves yellowing")? The column is
       in scope as nullable. Recommendation: include the column, leave the UI field for
       later if the control feels cluttered.
-- [ ] **Q-CARE3-2** What was `$5` in the PUT query? Recommendation: do not archaeologise.
+- [x] **Q-CARE3-2** settled as recommended, see D-C5. What was `$5` in the PUT query? Recommendation: do not archaeologise.
       Rewrite the statement with contiguous parameters and verify every field it updates
       still round-trips.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-C5 The `$5` gap was rewritten, not researched.** The old statement bound `$1..$4`
+  and `$6` while matching on `$5`. As Q-CARE3-2 recommended, no archaeology: the statement
+  now uses `$1` for the id in the `WHERE` clause and `$2..$6` for the five updated columns.
+  A test asserts every parameter from `$1` to `$6` appears and that the value array has
+  six entries, so the gap cannot come back unnoticed. Verified by round trip: a PUT with a
+  new name and location persisted both.
+
+- **D-C6 One statement does the read, the write and the event.** Section 4 asks for a
+  `RETURNING` clause to avoid the read-then-write race. `changePlantStatus` in
+  `server/utils/plantStatus.ts` is a single CTE: `prev` reads the current status, `upd`
+  updates only `WHERE status IS DISTINCT FROM` the new value, and the `INSERT` selects
+  from `upd`. A no-op change therefore updates nothing, inserts nothing and returns null,
+  without a separate comparison step in application code.
+
+- **D-C7 `plants.status` has exactly one write path.** Both `PUT /api/plants/:id` and
+  `bury` call the helper, and neither statement mentions `status`. A test asserts the PUT's
+  update statement does not contain the word, which is what stops a third write site from
+  quietly skipping the history.
+
+- **D-C8 The detail page awaits its two list fetches.** Same reasoning as D-C4 in CARE-02:
+  the status history and the plant's reminders are server-rendered rather than appearing
+  after hydration.
+
+Verified on 2026-08-08 against a local Postgres:
+
+```
+PUT status=sick        -> history: healthy -> sick          (1 row)
+PUT status=sick again  -> history unchanged                 (1 row)
+PUT name+location only -> history unchanged, fields saved   (1 row)
+POST bury              -> history: sick -> dead, newest first (2 rows)
+```
+
+The detail page server-renders "Status: Dead" and both transitions under "Status history".

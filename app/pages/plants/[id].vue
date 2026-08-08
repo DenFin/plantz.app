@@ -56,6 +56,8 @@
                   <p><span class="font-bold">Last watered: </span>{{ lastCareLabel('watering') }}</p>
                   <USeparator />
                   <p><span class="font-bold">Last fertilized: </span>{{ lastCareLabel('fertilizing') }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Status: </span>{{ statusLabel(plant.data[0].status) }}</p>
                 </div>
 
                 <!-- CARE LOG. One tap, no modal: anything slower does not get logged. -->
@@ -169,6 +171,27 @@
                     </div>
                   </template>
                 </UModal>
+
+                <!-- STATUS HISTORY -->
+                <div v-if="statusHistory.length" class="mb-8">
+                  <h3 class="font-bold mb-2">
+                    Status history
+                  </h3>
+                  <ul class="flex flex-col gap-1">
+                    <li
+                      v-for="statusEvent in statusHistory"
+                      :key="statusEvent.id"
+                      class="flex justify-between text-sm"
+                    >
+                      <span>
+                        {{ statusEvent.from_status ? statusLabel(statusEvent.from_status) : 'unknown' }}
+                        to
+                        {{ statusLabel(statusEvent.to_status) }}
+                      </span>
+                      <span class="text-gray-500">{{ formatDate(statusEvent.changed_at) }}</span>
+                    </li>
+                  </ul>
+                </div>
 
                 <div class="flex gap-1.5">
                   <!-- Note Buttons -->
@@ -406,6 +429,16 @@
               label-key="name"
               value-key="id"
               placeholder="Where is the plant located?"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Status" />
+            <USelect
+              v-model="plantToEdit.status"
+              :items="PLANT_STATUS_OPTIONS"
+              label-key="label"
+              value-key="value"
+              placeholder="How is the plant doing?"
             />
           </div>
           <UButton
@@ -671,6 +704,7 @@ const plantToEdit = ref({
   species: plant.value?.data?.[0]?.species,
   location: plant.value?.data?.[0]?.location,
   room_id: plant.value?.data?.[0]?.room_id,
+  status: plant.value?.data?.[0]?.status,
 })
 
 watch(plant, () => {
@@ -681,6 +715,7 @@ watch(plant, () => {
     species: plant.value?.data?.[0]?.species,
     location: plant.value?.data?.[0]?.location,
     room_id: plant.value?.data?.[0]?.room_id,
+    status: plant.value?.data?.[0]?.status,
   }
 })
 
@@ -713,6 +748,7 @@ async function editPlant() {
             title: 'Successfully edited plant',
           })
           refresh()
+          loadStatusHistory()
           showPlantEditModal.value = false
         }
       },
@@ -726,6 +762,43 @@ async function editPlant() {
 function getPhotosAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.filter(photo => photo.note_id === noteId)
 }
+
+// STATUS
+const PLANT_STATUS_OPTIONS = [
+  { value: 'healthy', label: 'Healthy' },
+  { value: 'sick', label: 'Sick' },
+  { value: 'needs_repotting', label: 'Needs repotting' },
+  { value: 'dead', label: 'Dead' },
+] as const
+
+type PlantStatusEvent = {
+  id: string
+  from_status: string | null
+  to_status: string
+  changed_at: string
+  note: string | null
+}
+
+const statusHistory = ref<PlantStatusEvent[]>([])
+
+function statusLabel(value: string | null | undefined) {
+  if (!value)
+    return 'unknown'
+  return PLANT_STATUS_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+async function loadStatusHistory() {
+  try {
+    const response = await $fetch<ApiResponse<PlantStatusEvent[]>>(`/api/plants/${id}/status-history`)
+    statusHistory.value = response.data ?? []
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+// Awaited so the history is in the server-rendered page rather than appearing after
+// hydration, same reasoning as the reminder list on the start page.
+await loadStatusHistory()
 
 // REMINDERS
 const isReminderModalOpen = ref(false)
@@ -747,7 +820,7 @@ async function loadPlantReminders() {
     console.error(e)
   }
 }
-loadPlantReminders()
+await loadPlantReminders()
 
 async function addReminder() {
   if (!remindAt.value) {
