@@ -1,5 +1,6 @@
 import { defineEventHandler } from 'h3'
 import { database } from '~~/server/utils/db'
+import { dbUp } from '~~/server/utils/metrics'
 
 export default defineEventHandler(async () => {
   try {
@@ -9,6 +10,8 @@ export default defineEventHandler(async () => {
     try {
       // Try a simple query to check the DB connection
       const result = await client.query('SELECT NOW();')
+
+      dbUp.set(1)
 
       // Return a success response with the result
       return {
@@ -23,6 +26,7 @@ export default defineEventHandler(async () => {
     }
   }
   catch (error) {
+    dbUp.set(0)
     console.error('Database connection error:', error)
 
     // Return an error response if something goes wrong

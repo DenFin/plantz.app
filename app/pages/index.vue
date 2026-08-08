@@ -72,6 +72,108 @@
         </BaseCard>
       </div>
     </section>
+    <!-- NEEDS WATER. Plants without an interval are absent by design, not missing. -->
+    <section id="needs-water">
+      <h2 class="font-bold text-xl mb-3">
+        Needs water
+      </h2>
+      <div
+        v-if="duePlants?.length"
+        class="flex flex-col gap-3"
+      >
+        <BaseCard
+          v-for="due in duePlants"
+          :key="due.id"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col">
+              <span class="text-xs text-red-600 font-bold">
+                {{ due.days_overdue }} days overdue
+                &middot; every {{ due.watering_interval_days }} days
+              </span>
+              <NuxtLink
+                :to="`/plants/${due.id}`"
+                class="font-bold"
+              >
+                {{ due.name }}
+              </NuxtLink>
+              <span class="text-sm text-gray-500">
+                {{ due.never_watered ? 'never watered' : `last watered ${formatDate(due.last_watering)}` }}
+              </span>
+            </div>
+            <UButton
+              icon="i-lucide-droplet"
+              size="sm"
+              variant="soft"
+              :loading="wateringPlant === due.id"
+              :disabled="!!wateringPlant"
+              @click="waterPlant(due)"
+            >
+              Water
+            </UButton>
+          </div>
+        </BaseCard>
+      </div>
+      <div
+        v-else
+        class="bg-emerald-200 rounded-lg p-4"
+      >
+        <p>Nothing is overdue. Plants without a watering interval never appear here.</p>
+      </div>
+    </section>
+    <!-- REMINDERS. The start page is what gets opened, so this is where they belong. -->
+    <section id="reminders">
+      <h2 class="font-bold text-xl mb-3">
+        Reminders
+      </h2>
+      <div
+        v-if="openReminders?.length"
+        class="flex flex-col gap-3"
+      >
+        <BaseCard
+          v-for="reminder in openReminders"
+          :key="reminder.id"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col">
+              <span
+                class="text-xs"
+                :class="isOverdue(reminder) ? 'text-red-600 font-bold' : 'text-gray-500'"
+              >
+                {{ isOverdue(reminder) ? 'Overdue since' : 'Due' }}
+                {{ formatDate(reminder.remind_at) }}
+                <template v-if="reminder.recurrence_days">
+                  &middot; every {{ reminder.recurrence_days }} days
+                </template>
+              </span>
+              <NuxtLink
+                :to="`/plants/${reminder.plant_id}`"
+                class="font-bold"
+              >
+                {{ reminder.plant_name }}
+              </NuxtLink>
+              <p>{{ reminder.message }}</p>
+            </div>
+            <UButton
+              icon="i-heroicons-check"
+              size="sm"
+              variant="soft"
+              :loading="completingReminder === reminder.id"
+              :disabled="!!completingReminder"
+              @click="completeReminder(reminder)"
+            >
+              Done
+            </UButton>
+          </div>
+        </BaseCard>
+      </div>
+      <div
+        v-else
+        class="bg-emerald-200 rounded-lg p-4"
+      >
+        <p>Nothing is due. Open a plant to set a reminder.</p>
+      </div>
+    </section>
     <section
       id="recent-notes"
       class="grid lg:grid-cols-2  gap-4"
@@ -199,6 +301,82 @@ fetchRecentNotes()
 
 const { recent: recentPhotos, fetchRecent: fetchRecentPhotos } = usePhotos()
 fetchRecentPhotos()
+
+// NEEDS WATER
+const toast = useToast()
+
+type DuePlant = {
+  id: string
+  name: string
+  watering_interval_days: number
+  last_watering: string
+  never_watered: boolean
+  due_at: string
+  days_overdue: number
+}
+
+const duePlants = ref<DuePlant[]>([])
+const wateringPlant = ref<string | null>(null)
+
+async function loadDuePlants() {
+  try {
+    const response = await $fetch<ApiResponse<DuePlant[]>>('/api/plants/due')
+    duePlants.value = response.data ?? []
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+await loadDuePlants()
+
+async function waterPlant(due: DuePlant) {
+  wateringPlant.value = due.id
+  try {
+    await $fetch(`/api/plants/${due.id}/care`, { method: 'POST', body: { type: 'watering' } })
+    toast.add({ title: `Watered ${due.name}` })
+    await loadDuePlants()
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: `Could not log watering for ${due.name}`, color: 'error' })
+  }
+  finally {
+    wateringPlant.value = null
+  }
+}
+
+// REMINDERS
+const { many: openReminders, fetchMany: fetchReminders, complete } = useReminders()
+// Awaited, unlike the counters above: the list has to be in the server-rendered page,
+// not appear a moment after hydration.
+await fetchReminders('open')
+
+const completingReminder = ref<string | null>(null)
+
+function isOverdue(reminder: Reminder) {
+  return new Date(reminder.remind_at).getTime() < Date.now()
+}
+
+async function completeReminder(reminder: Reminder) {
+  completingReminder.value = reminder.id
+  try {
+    const response = await complete(reminder.id)
+    const successor = response.data?.successor
+    toast.add({
+      title: successor
+        ? `Done. Next on ${formatDate(successor.remind_at)}`
+        : 'Reminder completed',
+    })
+    await fetchReminders('open')
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not complete the reminder', color: 'error' })
+  }
+  finally {
+    completingReminder.value = null
+  }
+}
 
 const lightboxRef = ref<InstanceType<typeof PlantLightbox> | null>(null)
 const showLightbox = ref(false)

@@ -2,7 +2,7 @@
 id: CARE-01
 epic: EPIC-PLANTZ-CARE
 title: Care Events
-status: open
+status: done
 priority: P0
 depends_on: [DEL-01]
 repo: plantz

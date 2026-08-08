@@ -2,7 +2,7 @@
 id: DEL-04
 epic: EPIC-PLANTZ-DELIVERY
 title: "CI Pipeline: Lint, Test, Build, Push"
-status: open
+status: done
 priority: P0
 depends_on: [DEL-02, DEL-03]
 repo: plantz
@@ -147,3 +147,24 @@ ssh gitea "docker pull 192.168.178.43:3000/dennis/plantz.app:latest && docker im
 - [ ] **Q-DEL4-1** Should pull requests also build the Docker image, or only run lint,
       test and `pnpm build`? Recommendation: skip the Docker build on PRs. It is the
       slowest step and `pnpm build` already proves the app compiles.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-D21 The runner labels are `ubuntu-latest`, `ubuntu-22.04`, `ubuntu-20.04`**, read
+  from `/data/.runner` inside `gitea-runner-1` rather than guessed. `runs-on: ubuntu-latest`.
+- **D-D22 `.pnpm-store` had to be gitignored.** `pnpm/action-setup` places the store inside
+  the workspace, and the eslint config honours `.gitignore`, so the first run reported
+  806861 errors from the store's JSON index files. One line in `.gitignore` fixes it, and
+  the store should never be committed anyway.
+- **D-D23 The build needs a raised heap ceiling.** The gitea VM has 2.8 GB of RAM, so node
+  caps old space near 1.4 GB and the nitro build aborts with a fatal OOM. Both the CI build
+  step and the Dockerfile build stage set `--max-old-space-size=2048`. This is the risk the
+  section 7 table anticipated; it fired on the second run.
+- **D-D24 Registry auth uses a repository secret**, see D-D20 in DEL-05.
+- **Q-DEL4-1** settled: the docker build stays off non-`main` branches, as the
+  recommendation proposed. `pnpm build` already proves the app compiles.
+
+Verified on 2026-08-07: green run on `feat/plantz-program` with no image (run 91, `image`
+skipped, packages empty), green run on `main` with the image tagged `0cb1bb69d5e1` and
+`latest` (run 98), red run on a deliberate lint error (run 92) and on a deliberate test
+failure (run 93), neither of which pushed an image.

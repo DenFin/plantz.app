@@ -55,16 +55,16 @@ not track those changes.
 
 | # | ID | Title | Epic | Status | Depends on | Loopable | Repo |
 |---|-----|-------|------|--------|------------|----------|------|
-| 1 | [DEL-01](subs/del-01-data-access-and-migration-runner.md) | Data Access & Migration Runner | DELIVERY | wip | none | yes | plantz |
+| 1 | [DEL-01](subs/del-01-data-access-and-migration-runner.md) | Data Access & Migration Runner | DELIVERY | done | none | yes | plantz |
 | 2 | [DEL-02](subs/del-02-test-runner-and-lint-gate.md) | Test Runner & Lint Gate | DELIVERY | done | none | yes | plantz |
 | 3 | [DEL-03](subs/del-03-gitea-origin-github-mirror.md) | Gitea as Origin, GitHub as Mirror | DELIVERY | done | none | yes | plantz |
-| 4 | [DEL-04](subs/del-04-ci-pipeline.md) | CI Pipeline: Lint, Test, Build, Push | DELIVERY | open | DEL-02, DEL-03 | yes | plantz |
-| 5 | [DEL-05](subs/del-05-automated-deploy-to-terry.md) | Automated Deploy to terry | DELIVERY | open | DEL-01, DEL-04 | yes | plantz, terry |
-| 6 | [CARE-01](subs/care-01-care-events.md) | Care Events | CARE | open | DEL-01 | yes | plantz |
-| 7 | [CARE-02](subs/care-02-reminders-end-to-end.md) | Reminders End to End | CARE | open | DEL-01 | yes | plantz |
-| 8 | [CARE-03](subs/care-03-plant-status-history.md) | Plant Status History | CARE | open | DEL-01 | yes | plantz |
-| 9 | [CARE-04](subs/care-04-watering-due-dates.md) | Watering Due Dates | CARE | open | CARE-01 | yes | plantz |
-| 10 | [INS-01](subs/ins-01-metrics-endpoint-and-sampler.md) | Metrics Endpoint & Sampler | INSIGHT | open | DEL-01, CARE-01, CARE-02, CARE-04 | yes | plantz |
+| 4 | [DEL-04](subs/del-04-ci-pipeline.md) | CI Pipeline: Lint, Test, Build, Push | DELIVERY | done | DEL-02, DEL-03 | yes | plantz |
+| 5 | [DEL-05](subs/del-05-automated-deploy-to-terry.md) | Automated Deploy to terry | DELIVERY | done | DEL-01, DEL-04 | yes | plantz, terry |
+| 6 | [CARE-01](subs/care-01-care-events.md) | Care Events | CARE | done | DEL-01 | yes | plantz |
+| 7 | [CARE-02](subs/care-02-reminders-end-to-end.md) | Reminders End to End | CARE | done | DEL-01 | yes | plantz |
+| 8 | [CARE-03](subs/care-03-plant-status-history.md) | Plant Status History | CARE | done | DEL-01 | yes | plantz |
+| 9 | [CARE-04](subs/care-04-watering-due-dates.md) | Watering Due Dates | CARE | done | CARE-01 | yes | plantz |
+| 10 | [INS-01](subs/ins-01-metrics-endpoint-and-sampler.md) | Metrics Endpoint & Sampler | INSIGHT | done | DEL-01, CARE-01, CARE-02, CARE-04 | yes | plantz |
 | 11 | [INS-02](subs/ins-02-prometheus-job-and-node-exporter.md) | Prometheus Job on cerf | INSIGHT | open | INS-01 | yes | homelab-root |
 | 12 | [INS-03](subs/ins-03-grafana-board.md) | Grafana Board `Service: Plantz` | INSIGHT | open | INS-02 | yes | homelab-root |
 | 13 | [OPS-01](subs/ops-01-backup-postgres-and-minio.md) | Backup for terry Postgres & MinIO | OPS | open | none | confirm | homelab-root, terry |

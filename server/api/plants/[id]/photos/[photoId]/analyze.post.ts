@@ -4,6 +4,7 @@ import process from 'node:process'
 import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'
+import { aiAnalyses, aiAnalysisDuration } from '~~/server/utils/metrics'
 import { createMinioClient } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -72,6 +73,10 @@ export default defineEventHandler(async (event: H3Event) => {
 
     const dataUrl = `data:${mimeType};base64,${base64Image}`
 
+    // Counted by outcome so the board can separate "AI is slow" from "AI is failing".
+    const model = 'x-ai/grok-4.1-fast:free'
+    const doneTiming = aiAnalysisDuration.startTimer()
+
     // Call OpenRouter API
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -82,7 +87,7 @@ export default defineEventHandler(async (event: H3Event) => {
         'X-Title': 'Plantz',
       },
       body: JSON.stringify({
-        model: 'x-ai/grok-4.1-fast:free',
+        model,
         messages: [
           {
             role: 'user',
@@ -104,6 +109,8 @@ export default defineEventHandler(async (event: H3Event) => {
     })
 
     if (!openRouterResponse.ok) {
+      doneTiming()
+      aiAnalyses.inc({ model, outcome: 'error' })
       const errorText = await openRouterResponse.text()
       consola.error('OpenRouter API error:', errorText)
       return { error: 'AI analysis failed', status: openRouterResponse.status }
@@ -113,9 +120,14 @@ export default defineEventHandler(async (event: H3Event) => {
     const aiResponse = openRouterData.choices?.[0]?.message?.content
 
     if (!aiResponse) {
+      doneTiming()
+      aiAnalyses.inc({ model, outcome: 'invalid' })
       consola.error('Invalid response from OpenRouter:', openRouterData)
       return { error: 'Invalid AI response', status: 500 }
     }
+
+    doneTiming()
+    aiAnalyses.inc({ model, outcome: 'success' })
 
     return {
       status: 200,

@@ -6,6 +6,7 @@ import formidable from 'formidable'
 import { defineEventHandler, getRouterParam } from 'h3'
 import sharp from 'sharp'
 import { database } from '~~/server/utils/db'
+import { photoUploadBytes, photoUploads } from '~~/server/utils/metrics'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -71,13 +72,17 @@ export default defineEventHandler(async (event: H3Event) => {
       )
       consola.info('Uploaded to MinIO, objectKey:', objectKey)
 
-      // Create photo record
+      // Create photo record. size_bytes is set inline for new uploads; existing rows are
+      // filled in by scripts/backfillPhotoSizes.ts.
       const createPhotoQuery = `
-        INSERT INTO photos (plant_id, image_url)
-        VALUES ($1, $2)
+        INSERT INTO photos (plant_id, image_url, size_bytes)
+        VALUES ($1, $2, $3)
         RETURNING id;
       `
-      const result = await client.query(createPhotoQuery, [id, objectKey])
+      const result = await client.query(createPhotoQuery, [id, objectKey, afterSize])
+
+      photoUploads.inc()
+      photoUploadBytes.inc(afterSize)
       consola.info('Created photo record:', result.rows[0])
 
       await client.query('COMMIT')

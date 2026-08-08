@@ -1,5 +1,14 @@
 /* AUTO-GENERATED FILE. DO NOT EDIT. */
 
+export type CareEvents = {
+  id: string
+  plant_id: string
+  type: any
+  occurred_at: string
+  note: string | null
+  created_at: string | null
+}
+
 export type Notes = {
   id: string
   plant_id: string | null
@@ -13,6 +22,16 @@ export type Photos = {
   image_url: string
   taken_at: string | null
   note_id: string | null
+  size_bytes: number | null
+}
+
+export type PlantStatusEvents = {
+  id: string
+  plant_id: string
+  from_status: any | null
+  to_status: any
+  changed_at: string
+  note: string | null
 }
 
 export type Plants = {
@@ -25,7 +44,7 @@ export type Plants = {
   room_id: number | null
   status: any
   parent_plant_id: string | null
-  children: Array<Plants>
+  watering_interval_days: number | null
 }
 
 export type Reminders = {
@@ -34,6 +53,8 @@ export type Reminders = {
   remind_at: string
   message: string | null
   created_at: string | null
+  completed_at: string | null
+  recurrence_days: number | null
 }
 
 export type Rooms = {
@@ -43,6 +64,11 @@ export type Rooms = {
   icon: string
   orientation: string
   created_at: string | null
+}
+
+export type SchemaMigrations = {
+  filename: string
+  applied_at: string
 }
 
 export type Users = {

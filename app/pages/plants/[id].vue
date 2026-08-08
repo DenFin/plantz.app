@@ -52,9 +52,151 @@
                   <p><span class="font-bold">Location: </span>{{ plant.data[0].location }}</p>
                   <USeparator />
                   <p><span class="font-bold">Created: </span>{{ formatDate(plant.data[0].created_at) }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Last watered: </span>{{ lastCareLabel('watering') }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Last fertilized: </span>{{ lastCareLabel('fertilizing') }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Status: </span>{{ statusLabel(plant.data[0].status) }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Next watering: </span>{{ nextWateringLabel }}</p>
                 </div>
+
+                <!-- CARE LOG. One tap, no modal: anything slower does not get logged. -->
+                <div class="flex flex-wrap gap-1.5 mb-8">
+                  <UButton
+                    v-for="care in CARE_BUTTONS"
+                    :key="care.type"
+                    :icon="care.icon"
+                    :loading="loggingCare === care.type"
+                    :disabled="!!loggingCare"
+                    size="sm"
+                    color="primary"
+                    variant="soft"
+                    @click="logCare(care.type)"
+                  >
+                    {{ care.label }}
+                  </UButton>
+                </div>
+
+                <div v-if="careEvents?.length" class="mb-8">
+                  <h3 class="font-bold mb-2">
+                    Recent care
+                  </h3>
+                  <ul class="flex flex-col gap-1">
+                    <li
+                      v-for="careEvent in careEvents.slice(0, 8)"
+                      :key="careEvent.id"
+                      class="flex justify-between text-sm"
+                    >
+                      <span>{{ careLabel(careEvent.type) }}</span>
+                      <span class="text-gray-500">{{ formatDate(careEvent.occurred_at) }}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- REMINDERS -->
+                <div class="mb-8">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold">
+                      Reminders
+                    </h3>
+                    <UButton
+                      icon="i-heroicons-plus"
+                      size="xs"
+                      variant="soft"
+                      @click="isReminderModalOpen = true"
+                    >
+                      Add
+                    </UButton>
+                  </div>
+                  <ul
+                    v-if="plantReminders.length"
+                    class="flex flex-col gap-1"
+                  >
+                    <li
+                      v-for="reminder in plantReminders"
+                      :key="reminder.id"
+                      class="flex items-center justify-between gap-2 text-sm"
+                    >
+                      <span>
+                        {{ formatDate(reminder.remind_at) }}
+                        <span class="text-gray-500">{{ reminder.message }}</span>
+                        <span
+                          v-if="reminder.recurrence_days"
+                          class="text-gray-500"
+                        >
+                          (every {{ reminder.recurrence_days }} days)
+                        </span>
+                      </span>
+                      <UButton
+                        icon="i-heroicons-check"
+                        size="xs"
+                        variant="ghost"
+                        :loading="completingReminder === reminder.id"
+                        :disabled="!!completingReminder"
+                        @click="completeReminder(reminder)"
+                      />
+                    </li>
+                  </ul>
+                  <p
+                    v-else
+                    class="text-sm text-gray-500"
+                  >
+                    No open reminders.
+                  </p>
+                </div>
+
+                <UModal v-model:open="isReminderModalOpen" title="New reminder">
+                  <template #body>
+                    <div class="flex flex-col gap-3">
+                      <UInput
+                        v-model="remindAt"
+                        type="datetime-local"
+                      />
+                      <UInput
+                        v-model="message"
+                        placeholder="What should happen?"
+                      />
+                      <UInput
+                        v-model.number="recurrenceDays"
+                        type="number"
+                        min="1"
+                        placeholder="Repeat every N days (optional)"
+                      />
+                      <UButton
+                        :loading="isSavingReminder"
+                        @click="addReminder"
+                      >
+                        Create
+                      </UButton>
+                    </div>
+                  </template>
+                </UModal>
+
+                <!-- STATUS HISTORY -->
+                <div v-if="statusHistory.length" class="mb-8">
+                  <h3 class="font-bold mb-2">
+                    Status history
+                  </h3>
+                  <ul class="flex flex-col gap-1">
+                    <li
+                      v-for="statusEvent in statusHistory"
+                      :key="statusEvent.id"
+                      class="flex justify-between text-sm"
+                    >
+                      <span>
+                        {{ statusEvent.from_status ? statusLabel(statusEvent.from_status) : 'unknown' }}
+                        to
+                        {{ statusLabel(statusEvent.to_status) }}
+                      </span>
+                      <span class="text-gray-500">{{ formatDate(statusEvent.changed_at) }}</span>
+                    </li>
+                  </ul>
+                </div>
+
                 <div class="flex gap-1.5">
-                  <!-- Reminder and Note Buttons -->
+                  <!-- Note Buttons -->
                   <!-- (Rest of the buttons remain the same) -->
                 </div>
               </BaseCard>
@@ -291,6 +433,25 @@
               placeholder="Where is the plant located?"
             />
           </div>
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Watering interval in days" />
+            <UInput
+              v-model.number="plantToEdit.watering_interval_days"
+              type="number"
+              min="1"
+              placeholder="Leave empty if you do not want due dates"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <BaseLabel text="Status" />
+            <USelect
+              v-model="plantToEdit.status"
+              :items="PLANT_STATUS_OPTIONS"
+              label-key="label"
+              value-key="value"
+              placeholder="How is the plant doing?"
+            />
+          </div>
           <UButton
             type="submit"
             :loading="isUpdating"
@@ -330,6 +491,44 @@ function formatDate(dateString: string) {
     month: 'long',
     day: 'numeric',
   })
+}
+
+// CARE LOG
+const CARE_BUTTONS = [
+  { type: 'watering', label: 'Water', icon: 'i-lucide-droplet' },
+  { type: 'fertilizing', label: 'Fertilize', icon: 'i-lucide-sprout' },
+  { type: 'repotting', label: 'Repot', icon: 'i-lucide-flower-2' },
+  { type: 'pruning', label: 'Prune', icon: 'i-lucide-scissors' },
+  { type: 'treatment', label: 'Treat', icon: 'i-lucide-bug' },
+] as const
+
+const { many: careEvents, fetchMany: fetchCare, log: logCareEvent, lastOf } = useCare()
+fetchCare(id as string)
+
+const loggingCare = ref<CareType | null>(null)
+
+function careLabel(type: CareType) {
+  return CARE_BUTTONS.find(care => care.type === type)?.label ?? type
+}
+
+function lastCareLabel(type: CareType) {
+  const event = lastOf(type)
+  return event ? formatDate(event.occurred_at) : 'never'
+}
+
+async function logCare(type: CareType) {
+  loggingCare.value = type
+  try {
+    await logCareEvent(id as string, type)
+    toast.add({ title: `Logged ${careLabel(type).toLowerCase()}` })
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: `Could not log ${careLabel(type).toLowerCase()}`, color: 'error' })
+  }
+  finally {
+    loggingCare.value = null
+  }
 }
 
 const showUploadButton = ref(false)
@@ -516,6 +715,8 @@ const plantToEdit = ref({
   species: plant.value?.data?.[0]?.species,
   location: plant.value?.data?.[0]?.location,
   room_id: plant.value?.data?.[0]?.room_id,
+  status: plant.value?.data?.[0]?.status,
+  watering_interval_days: plant.value?.data?.[0]?.watering_interval_days,
 })
 
 watch(plant, () => {
@@ -526,6 +727,8 @@ watch(plant, () => {
     species: plant.value?.data?.[0]?.species,
     location: plant.value?.data?.[0]?.location,
     room_id: plant.value?.data?.[0]?.room_id,
+    status: plant.value?.data?.[0]?.status,
+    watering_interval_days: plant.value?.data?.[0]?.watering_interval_days,
   }
 })
 
@@ -558,6 +761,7 @@ async function editPlant() {
             title: 'Successfully edited plant',
           })
           refresh()
+          loadStatusHistory()
           showPlantEditModal.value = false
         }
       },
@@ -572,14 +776,125 @@ function getPhotosAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.filter(photo => photo.note_id === noteId)
 }
 
-const _isReminderModalOpen = ref(false)
+// WATERING DUE. The value comes from the server's shared definition, never recomputed
+// here, so the detail page and the due list cannot disagree.
+const nextWateringLabel = computed(() => {
+  const due = (plant.value as any)?.wateringDue
+  if (!due)
+    return 'no interval set'
+  const date = formatDate(due.due_at)
+  if (due.days_overdue > 0)
+    return `${date} (${due.days_overdue} days overdue)`
+  return date
+})
 
+// STATUS
+const PLANT_STATUS_OPTIONS = [
+  { value: 'healthy', label: 'Healthy' },
+  { value: 'sick', label: 'Sick' },
+  { value: 'needs_repotting', label: 'Needs repotting' },
+  { value: 'dead', label: 'Dead' },
+] as const
+
+type PlantStatusEvent = {
+  id: string
+  from_status: string | null
+  to_status: string
+  changed_at: string
+  note: string | null
+}
+
+const statusHistory = ref<PlantStatusEvent[]>([])
+
+function statusLabel(value: string | null | undefined) {
+  if (!value)
+    return 'unknown'
+  return PLANT_STATUS_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+async function loadStatusHistory() {
+  try {
+    const response = await $fetch<ApiResponse<PlantStatusEvent[]>>(`/api/plants/${id}/status-history`)
+    statusHistory.value = response.data ?? []
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+// Awaited so the history is in the server-rendered page rather than appearing after
+// hydration, same reasoning as the reminder list on the start page.
+await loadStatusHistory()
+
+// REMINDERS
+const isReminderModalOpen = ref(false)
 const message = ref('')
-const remindAt = ref(null)
+const remindAt = ref('')
+const recurrenceDays = ref<number | null>(null)
+const isSavingReminder = ref(false)
 
-async function _addReminder() {
-  console.log('message', message.value)
-  console.log('remindAt', remindAt.value)
+const { fetchForPlant, create: createReminder, complete: completeReminderApi } = useReminders()
+const plantReminders = ref<Reminder[]>([])
+const completingReminder = ref<string | null>(null)
+
+async function loadPlantReminders() {
+  try {
+    const response = await fetchForPlant(id as string, 'open')
+    plantReminders.value = response.data ?? []
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+await loadPlantReminders()
+
+async function addReminder() {
+  if (!remindAt.value) {
+    toast.add({ title: 'Pick a date first', color: 'error' })
+    return
+  }
+  isSavingReminder.value = true
+  try {
+    await createReminder({
+      plant_id: id as string,
+      remind_at: remindAt.value,
+      message: message.value,
+      recurrence_days: recurrenceDays.value || null,
+    })
+    toast.add({ title: 'Reminder created' })
+    isReminderModalOpen.value = false
+    message.value = ''
+    remindAt.value = ''
+    recurrenceDays.value = null
+    await loadPlantReminders()
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not create the reminder', color: 'error' })
+  }
+  finally {
+    isSavingReminder.value = false
+  }
+}
+
+async function completeReminder(reminder: Reminder) {
+  completingReminder.value = reminder.id
+  try {
+    const response = await completeReminderApi(reminder.id)
+    const successor = response.data?.successor
+    toast.add({
+      title: successor
+        ? `Done. Next on ${formatDate(successor.remind_at)}`
+        : 'Reminder completed',
+    })
+    await loadPlantReminders()
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({ title: 'Could not complete the reminder', color: 'error' })
+  }
+  finally {
+    completingReminder.value = null
+  }
 }
 
 const isAnalyzing = ref(false)

@@ -11,8 +11,10 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "db:types": "node --experimental-strip-types scripts/generateTypes.ts && eslint db-types.ts --fix",
     "test": "vitest run --reporter=verbose",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:backfill-photo-sizes": "node --experimental-strip-types scripts/backfillPhotoSizes.ts"
   },
   "dependencies": {
     "@huggingface/hub": "^2.4.1",
@@ -34,6 +36,7 @@
     "multer": "2.0.2",
     "nuxt": "^4.2.2",
     "pg": "^8.16.3",
+    "prom-client": "^15.1.3",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.11",
     "vue": "^3.5.18",
