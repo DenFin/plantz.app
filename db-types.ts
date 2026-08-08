@@ -22,6 +22,7 @@ export type Photos = {
   image_url: string
   taken_at: string | null
   note_id: string | null
+  size_bytes: number | null
 }
 
 export type PlantStatusEvents = {

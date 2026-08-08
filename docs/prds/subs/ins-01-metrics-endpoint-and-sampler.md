@@ -2,7 +2,7 @@
 id: INS-01
 epic: EPIC-PLANTZ-INSIGHT
 title: Metrics Endpoint & Sampler
-status: open
+status: done
 priority: P1
 depends_on: [DEL-01, CARE-01, CARE-02, CARE-04]
 repo: plantz
@@ -158,6 +158,61 @@ ssh terry "docker start minio"
 
 ## 8. Open Questions
 
-- [ ] **Q-I1** recommendation applied: `prom-client`.
-- [ ] **Q-I2** recommendation applied: a `size_bytes` column with a one-off backfill.
-- [ ] **Q-I3** resolved in section 4: the sampler lives in a `server/plugins/` plugin.
+- [x] **Q-I1** recommendation applied: `prom-client`.
+- [x] **Q-I2** recommendation applied: a `size_bytes` column with a one-off backfill.
+- [x] **Q-I3** resolved in section 4: the sampler lives in a `server/plugins/` plugin.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-I5 Nitro's catch-all had to be excluded by hand for AE5 to mean anything.** Every
+  page request matches `event.context.matchedRoute.path === '/**'`, so using the matched
+  route verbatim produced a single `route="/**"` series for the whole app. That passes a
+  naive reading of AE5 (one series, no UUID) while telling the board nothing. The
+  middleware ignores any matched route containing `*` and falls through to a path
+  normaliser, which replaces UUID and numeric segments with `[id]`. API routes keep their
+  real pattern, so the label set is a mix of `/api/plants/:id` and `/plants/[id]`.
+
+- **D-I6 The dependency gauges are probed by the sampler, not only by the status
+  handlers.** Section 3.1 says the two existing handlers become the probe source, and they
+  do set the gauges when hit. On their own that is not enough for AE6: the acceptance test
+  stops MinIO, waits 65 seconds and scrapes, with no request to `/api/minio-status` in
+  between. `probeDependencies()` therefore runs on every sampler tick as well.
+
+- **D-I7 `size_bytes` is written at all three photo insert sites, not one.** Section 4
+  names `server/api/plants/[id]/photos/index.post.ts`. Two others also insert into
+  `photos`: `server/api/plants/index.post.ts` (a photo supplied while creating a plant)
+  and `server/api/notes/index.post.ts` (photos attached to a note). All three now set the
+  column and increment the upload counters, or `plantz_photo_bytes` would drift below the
+  truth over time.
+
+- **D-I8 The `/metrics` route is a nitro route, not an API route**, so it is reachable at
+  `/metrics` rather than `/api/metrics`, and the middleware skips it: counting the scrape
+  would add a series that only Prometheus causes.
+
+- **D-I9 No default Node metrics are registered.** `prom-client` can add process and heap
+  gauges with one call. The inventory table is the contract, so the registry holds exactly
+  the 22 metrics it lists and nothing else.
+
+## 10. Verification Results, 2026-08-08
+
+Against a local Postgres with four plants, two rooms, four care events and two reminders.
+
+| Check | Expected | Observed |
+|---|---|---|
+| `/metrics` format | Prometheus text | `# HELP` / `# TYPE`, `plantz_` throughout |
+| Inventory completeness | 22 metrics, right types | all 22 present, types match |
+| AE2 sampler caching | 10 scrapes, at most one sample | `plantz_db_query_duration_seconds_count` unchanged at 42, sampler timestamp unchanged |
+| AE5 route labels | one series, no UUID | `plantz_http_requests_total{route="/plants/[id]",method="GET",status="200"} 3`, zero UUID-shaped label values |
+| Cardinality cap | at most 20 series | 3 series, `plantsWithInterval(20)` asserted by test |
+| AE6 dependency down | minio 0, db 1 | `plantz_db_up 1`, `plantz_minio_up 0` |
+| `plantz_build_info` | build arg | `plantz_build_info{version="local-ins01-test"} 1` |
+| Postgres outage | process survives | container stopped, `/metrics` still answered 200, process alive; the log-and-retry path is covered by a test |
+
+Two DoD items could not be exercised locally and are noted rather than claimed:
+
+- **The `size_bytes` backfill over existing objects.** The local database has no photos and
+  no MinIO instance behind it. The script exists as `pnpm db:backfill-photo-sizes` and is
+  meant to run once against terry after this deploys.
+- **AE6 against terry's MinIO.** Verified by pointing the local app at an unreachable MinIO
+  endpoint instead of stopping the real one, which would have interrupted the running app
+  for the duration of the test. Same code path, same gauge.

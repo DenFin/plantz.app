@@ -1,5 +1,6 @@
 import process from 'node:process'
 import pg from 'pg'
+import { timeQuery } from '~~/server/utils/metrics'
 
 const { Pool } = pg
 
@@ -43,7 +44,8 @@ export async function database() {
 
 export async function queryDatabase(query: string, params: any[] = []) {
   try {
-    const res = await pool.query(query, params)
+    // Timed here rather than at each call site, so no query can be missed.
+    const res = await timeQuery(() => pool.query(query, params))
     return res.rows // Return the rows of the result
   }
   catch (err) {

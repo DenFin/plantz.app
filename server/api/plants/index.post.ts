@@ -3,6 +3,7 @@ import consola from 'consola'
 import formidable from 'formidable'
 import { defineEventHandler } from 'h3'
 import { database } from '~~/server/utils/db'
+import { photoUploadBytes, photoUploads } from '~~/server/utils/metrics'
 import { uploadFile } from '~~/server/utils/minio'
 
 export default defineEventHandler(async (event) => {
@@ -59,11 +60,14 @@ export default defineEventHandler(async (event) => {
 
         // Create photo record
         const createPhotoQuery = `
-                        INSERT INTO photos (plant_id, image_url)
-                        VALUES ($1, $2)
+                        INSERT INTO photos (plant_id, image_url, size_bytes)
+                        VALUES ($1, $2, $3)
                         RETURNING id;
                     `
-        await client.query(createPhotoQuery, [plantId, objectKey])
+        await client.query(createPhotoQuery, [plantId, objectKey, fileBuffer.length])
+
+        photoUploads.inc()
+        photoUploadBytes.inc(fileBuffer.length)
       }
 
       await client.query('COMMIT')
