@@ -11,7 +11,7 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     const plantId = getRouterParam(event, 'id')
     const photoId = getRouterParam(event, 'photoId')
-    const apiKey = process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY
+    const apiKey = process.env.OPENROUTER_API_KEY
 
     if (!plantId || !photoId) {
       return { error: 'Plant ID and Photo ID are required', status: 400 }

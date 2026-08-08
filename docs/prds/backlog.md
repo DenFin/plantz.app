@@ -69,7 +69,7 @@ not track those changes.
 | 12 | [INS-03](subs/ins-03-grafana-board.md) | Grafana Board `Service: Plantz` | INSIGHT | done | INS-02 | yes | homelab-root |
 | 13 | [OPS-01](subs/ops-01-backup-postgres-and-minio.md) | Backup for terry Postgres & MinIO | OPS | open | none | confirm | homelab-root, terry |
 | 14 | [OPS-02](subs/ops-02-remote-access.md) | Remote Access via Tunnel | OPS | open | DEL-05 | no | terry |
-| 15 | [OPS-03](subs/ops-03-credential-rotation.md) | Credential Rotation | OPS | open | DEL-05, OPS-01 | confirm | plantz, terry |
+| 15 | [OPS-03](subs/ops-03-credential-rotation.md) | Credential Rotation | OPS | wip | DEL-05, OPS-01 | confirm | plantz, terry |
 
 ## Epics
 

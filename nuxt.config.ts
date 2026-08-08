@@ -19,9 +19,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     minioBucket: process.env.MINIO_BUCKET,
-    public: {
-      openRouterApiKey: process.env.NUXT_PUBLIC_OPEN_ROUTER_API_KEY,
-    },
+    // Nothing goes under `public`: nuxt inlines that object into the client bundle. The
+    // OpenRouter key used to sit there and was readable by anyone who opened the app,
+    // even though it is only ever read server-side.
   },
   compatibilityDate: '2024-11-01',
   nitro: {

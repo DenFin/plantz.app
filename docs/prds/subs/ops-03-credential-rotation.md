@@ -2,7 +2,7 @@
 id: OPS-03
 epic: EPIC-PLANTZ-OPS
 title: Credential Rotation
-status: open
+status: wip
 priority: P1
 depends_on: [DEL-05, OPS-01]
 repo: plantz, terry
@@ -175,3 +175,60 @@ curl -fsS http://192.168.178.27:3000/api/minio-status
       the client bundle.
 - [ ] **Q-OPS3-1** Should `.env.example` also cover the variables `scripts/generateTypes.ts`
       reads? It reads the same `DATABASE_*` set, so yes, and no extra entries are needed.
+
+## 9. Repository Half: Done, 2026-08-08
+
+Everything under "Repository half (unattended)" in section 3.1 is complete. The host half
+is untouched and needs the confirmation the frontmatter asks for.
+
+- `nuxt.config.ts` no longer has a `public` block at all. The comment there now says why:
+  nuxt inlines `runtimeConfig.public` into the client bundle, so a key placed there is
+  readable by anyone who opens the app.
+- `NUXT_PUBLIC_OPEN_ROUTER_API_KEY` is `OPENROUTER_API_KEY` in the one read site,
+  `server/api/plants/[id]/photos/[photoId]/analyze.post.ts:14`, and in the local `.env`.
+- `DATABASE_URL` and `BETTER_AUTH_SECRET` are gone from the local `.env` and appear nowhere
+  in the repository outside these PRDs, which describe them.
+- `.env.example` lists all 13 variables the code reads, derived from the code rather than
+  from the old `.env`:
+
+  ```
+  grep -rhoE "process\.env\.[A-Z_][A-Z0-9_]*" server/ scripts/ nuxt.config.ts | sort -u
+  ```
+
+  It carries no real values. `.gitignore` already had `!.env.example`, so it is tracked
+  while `.env` stays ignored.
+
+Verification:
+
+| Check | Expected | Observed |
+|---|---|---|
+| Key value in `.output/public` | none | 0 files |
+| Key value anywhere in `.output` | none | 0 files |
+| `openRouterApiKey` as a name in the bundle | none | 0 files |
+| `.env` tracked by git | never | `git log --all -- .env` is empty, `git status` reports it ignored |
+| `.env.example` tracked | yes | staged and committed |
+| Lint, tests, build | pass | 0 errors, 57 tests, build exit 0 |
+
+## 10. Host Half: Waiting for Confirmation
+
+Nothing on terry was touched. Four steps remain, and each one can take the app off the air
+if it goes wrong:
+
+1. **Rotate `DATABASE_PASSWORD`.** Section 4 gives the order: stop plantz, `ALTER USER`,
+   update `/home/dennis/plantz/.env`, start plantz, smoke test. Note the path: DEL-05 moved
+   the compose project from `/root/plantz` to `/home/dennis/plantz`, so section 4's
+   `/root/plantz/.env` is out of date.
+2. **Rotate the MinIO access key and secret.** Section 4's warning applies: check the bucket
+   policy first, because new credentials can leave existing photos unreadable while the
+   files are still there.
+3. **Rotate the OpenRouter key at the provider.** The rename above stops the leak for
+   future builds. Every bundle built before today still carries the old key, so the old key
+   stays valid until it is rotated at OpenRouter. This is the half that actually closes the
+   exposure.
+4. **Smoke test:** save a plant (Postgres), upload a photo (MinIO), run an analysis
+   (OpenRouter).
+
+**OPS-01 comes first by the sub-PRD's own reasoning.** Section 4: rotating a database
+password is the one operation in the program that can cost data. With a verified backup it
+is an inconvenience; without one it is a gamble. OPS-01 needs a USB disk connected to terry,
+which is why it is `loopable: confirm` too.
