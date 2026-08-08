@@ -2,7 +2,7 @@
 id: INS-03
 epic: EPIC-PLANTZ-INSIGHT
 title: "Grafana Board: Service: Plantz"
-status: open
+status: done
 priority: P1
 depends_on: [INS-02]
 repo: homelab-root
@@ -140,6 +140,54 @@ ansible-playbook -i ansible/inventory/hosts.yml <monitoring playbook>
 
 ## 8. Open Questions
 
-- [ ] **Q-I4** (parent epic) Does `Photos and Storage` need a second Y axis or two stacked
-      panels? Decide while verifying the query against real data, then record the choice
-      here.
+- [x] **Q-I4** settled while verifying: one panel with a second Y axis. `plantz_photos`
+      counts in the tens and `plantz_photo_bytes` in the millions, so a shared axis would
+      flatten the count to the zero line. A field override puts "Stored bytes" on the right
+      axis with unit `bytes`. Two stacked panels would have cost a band's worth of height
+      for the same information.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-I11 The error-rate query returned nothing rather than zero.** Written as
+  `sum(rate(plantz_http_requests_total{status=~"5.."}[5m])) / …`, the numerator's selector
+  matches no series while the app has served no 5xx at all, `sum()` over an empty set
+  returns no series, and the division yields nothing. The panel would have read "No data"
+  in exactly the situation it is meant to report as healthy. Fixed with `or vector(0)`
+  around the numerator. This is the failure R14 exists to catch, and it only showed up
+  because every query was run before the JSON was committed.
+
+- **D-I12 AE3 and AE4 were verified against a throwaway plant, not a real one.** Both
+  acceptance tests require logging a watering and completing a reminder on terry. Doing
+  that on one of the real plants would have written a watering that never happened into the
+  history the whole CARE epic exists to make trustworthy. A plant named `AE3 Probe` was
+  created, used for both tests, and deleted afterwards; the cascade took its care event and
+  its reminder with it. Verified afterwards: zero rows left in `plants`, `care_events` and
+  `reminders` for that id.
+
+- **D-I13 The AI Analyses panel has no series yet and that is correct.** Section 4 says a
+  zero result is either a wrong query or a missing metric. Here it is neither:
+  `plantz_ai_analyses_total` is a counter whose label combinations only materialise on the
+  first analysis. It joins the history panels in section 4's "empty is expected" note.
+
+## 10. Verification Results, 2026-08-08
+
+Panel queries, all 23 run against live Prometheus on cerf before committing:
+
+| Result | Count | Which |
+|---|---|---|
+| Returned a series | 22 | every panel except one target |
+| Returned nothing | 1 | `AI Analyses` target A, no analysis has run on terry yet |
+
+Acceptance tests:
+
+| Test | Expected | Observed |
+|---|---|---|
+| Board provisioned | in Services, right uid and tag | `Service: Plantz \| uid: service-plantz \| folder: Services \| tags: ['service']` |
+| AE3 watering | care actions up, backlog bar down | `plantz_care_events_total{type="watering"}` 1 → 2, `plantz_plant_care_age_seconds` 864246 s → 602 s |
+| AE4 reminder done | open down, overdue never negative | open 1 → 0, overdue 1 → 0 |
+| AE7 idempotence | changed=0 | `ok=30 changed=0 failed=1` |
+
+The `failed=1` is the AdGuard collector's 401, recorded as B-I1 in INS-02 and unrelated to
+this sub-PRD. The dashboard tasks deliberately do not notify the restart handler, so the
+board deployed and was picked up by the file provisioner within its 10 second poll despite
+the play aborting later.
