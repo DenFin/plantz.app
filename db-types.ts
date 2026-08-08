@@ -43,6 +43,7 @@ export type Plants = {
   room_id: number | null
   status: any
   parent_plant_id: string | null
+  watering_interval_days: number | null
 }
 
 export type Reminders = {

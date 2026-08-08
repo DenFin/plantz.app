@@ -2,32 +2,54 @@ import consola from 'consola'
 import { createError } from 'h3'
 import { changePlantStatus, isPlantStatus } from '~~/server/utils/plantStatus'
 
+/**
+ * Columns this endpoint may write. `status` is deliberately absent: it goes through
+ * `changePlantStatus` so the history event cannot be skipped.
+ */
+const UPDATABLE_COLUMNS = [
+  'name',
+  'species',
+  'location',
+  'room_id',
+  'parent_plant_id',
+  'watering_interval_days',
+] as const
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { id: plantId, name, species, location, room_id, parent_plant_id, status } = body
+  const plantId = body?.id ?? getRouterParam(event, 'id')
 
-  if (status !== undefined && !isPlantStatus(status)) {
+  if (body?.status !== undefined && !isPlantStatus(body.status)) {
     throw createError({ statusCode: 400, statusMessage: 'status is not a known plant status' })
   }
 
-  // Q-CARE3-2: the old statement bound $1..$4 and $6 while matching on $5, leaving a gap
-  // nobody could explain. Rewritten with contiguous parameters instead of reconstructing
-  // what $5 once was.
-  const query = `
-        UPDATE plants
-        SET name = $2, species = $3, location = $4, room_id = $5, parent_plant_id = $6
-        WHERE id = $1
-    `
-  const values = [plantId, name, species, location, room_id, parent_plant_id]
+  // Only columns the body actually carries are written. The previous version listed every
+  // column unconditionally, so a partial body such as {"watering_interval_days":7} wrote
+  // NULL over the name and the statement died on the NOT NULL constraint. A key that is
+  // present and null still clears the column, which is how an interval gets removed.
+  //
+  // This also settles Q-CARE3-2: parameters are built in order, so the old $5 gap cannot
+  // reappear.
+  const columns = UPDATABLE_COLUMNS.filter(column => body?.[column] !== undefined)
+  const values: any[] = [plantId]
+  const assignments = columns.map((column) => {
+    values.push(body[column])
+    return `${column} = $${values.length}`
+  })
+
   const client = await database()
   try {
     await client.query('BEGIN')
-    await client.query(query, values)
 
-    // Status goes through the helper, never through the statement above, so the history
-    // event cannot be forgotten. A no-op change records nothing.
-    if (status !== undefined) {
-      const changeEvent = await changePlantStatus(plantId, status, { client })
+    if (assignments.length > 0) {
+      await client.query(
+        `UPDATE plants SET ${assignments.join(', ')} WHERE id = $1`,
+        values,
+      )
+    }
+
+    if (body?.status !== undefined) {
+      const changeEvent = await changePlantStatus(plantId, body.status, { client })
       if (changeEvent)
         consola.info(`Plant ${plantId}: ${changeEvent.from_status} to ${changeEvent.to_status}`)
     }

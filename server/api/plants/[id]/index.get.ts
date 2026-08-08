@@ -4,6 +4,7 @@ import consola from 'consola'
 import { defineEventHandler, getRouterParam } from 'h3'
 import { queryDatabase } from '~~/server/utils/db'
 import { createMinioClient } from '~~/server/utils/minio'
+import { wateringDueForPlant } from '~~/server/utils/wateringDue'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
@@ -60,8 +61,13 @@ export default defineEventHandler(async (event: H3Event) => {
       plants[0].photos = []
     }
 
+    // Comes from the shared due definition rather than being recomputed in the page, so
+    // the detail view and the due list can never disagree. Null when the plant has no
+    // interval.
+    const wateringDue = await wateringDueForPlant(id as string)
+
     consola.info('Returning plant with photos:', plants[0].photos.length)
-    return { status: 200, data: plants, children }
+    return { status: 200, data: plants, children, wateringDue }
   }
   catch (error) {
     consola.error('Error fetching plant:', error)

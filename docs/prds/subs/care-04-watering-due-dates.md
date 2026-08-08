@@ -2,7 +2,7 @@
 id: CARE-04
 epic: EPIC-PLANTZ-CARE
 title: Watering Due Dates
-status: open
+status: done
 priority: P1
 depends_on: [CARE-01]
 repo: plantz
@@ -135,10 +135,55 @@ pnpm test   # expect: exit 0
 
 ## 8. Open Questions
 
-- [ ] **Q-C2** (parent epic) recommendation applied: a nullable column on `plants`, not a
+- [x] **Q-C2** (parent epic) recommendation applied: a nullable column on `plants`, not a
       species lookup, not reminder-only.
-- [ ] **Q-CARE4-1** Should setting an interval automatically create a recurring reminder
+- [x] **Q-CARE4-1** settled as recommended, no auto-created reminder. Should setting an interval automatically create a recurring reminder
       from CARE-02? Recommendation: no. The due list answers "what needs water now"; a
       reminder answers "remind me about this specific thing". Auto-creating one from the
       other means completing a reminder and watering a plant become two ways to do the
       same thing, and the care history stops being trustworthy.
+
+## 9. Implementation Notes Added During the Work
+
+- **D-C9 `PUT /api/plants/:id` now writes only the columns the body carries.** The
+  verification in section 6 sends `{"watering_interval_days":7}` and nothing else. The old
+  statement listed every column unconditionally, so that body wrote NULL over `name` and
+  died on the NOT NULL constraint, rolled back, and answered 404. The endpoint builds its
+  SET clause from the keys present in the body instead. A key that is present and null
+  still clears the column, which is how an interval gets removed again. Two tests cover
+  both halves.
+
+  This also removes the last trace of the `$5` gap from CARE-03: parameters are numbered as
+  the clause is built, so there is nothing left to skip.
+
+- **D-C10 The due definition lives in `server/utils/wateringDue.ts` and has three entry
+  points over one select.** `overduePlants()` is the select plus a due filter,
+  `plantsWithInterval()` is the select as is, and `wateringDueForPlant()` is the select for
+  one id. INS-01 calls the second with `limit: 20` for its per-plant series, which is why
+  the limit is a parameter rather than something the sampler appends.
+
+- **D-C11 The detail page reads the due date from the server, not from arithmetic in the
+  page.** `GET /api/plants/:id` carries a `wateringDue` object from the shared helper. A
+  computed date in the component would have been a second definition, which is exactly the
+  drift section 4 warns about.
+
+- **D-C12 Mixing local and UTC timestamps costs a day, as the risk table predicted.**
+  Verifying with a locally-formatted `date -v-10d` against a Postgres container running in
+  UTC reported 2 days overdue instead of 3, a two-hour offset landing on the wrong side of
+  a day boundary. With `date -u -v-10d` it reports 3. Nothing in the code is wrong: it is
+  the "do not mix `now()` with client-side dates" note in section 4, demonstrated. The UI
+  never constructs these timestamps, the one-tap path sends no date at all.
+
+Verified on 2026-08-08 against a local Postgres:
+
+```
+interval 7, watered 10 days ago (UTC)  -> due list: 3 days overdue
+watered again just now                 -> due list: empty
+interval 7, never watered, created today -> absent, created_at is the baseline
+no interval at all                     -> absent
+interval set back to null              -> column cleared
+```
+
+The start page renders "3 days overdue, every 7 days, last watered 29. Juli 2026" with a
+one-tap Water button, and the detail page renders
+"Next watering: 5. August 2026 (3 days overdue)".

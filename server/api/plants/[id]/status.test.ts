@@ -34,17 +34,48 @@ beforeEach(() => {
 
 describe('put /api/plants/:id', () => {
   it('uses contiguous parameters, so the old $5 gap is gone', async () => {
-    readBody.mockResolvedValue({ id: PLANT_ID, name: 'Fern' })
+    readBody.mockResolvedValue({
+      id: PLANT_ID,
+      name: 'Fern',
+      species: 'Nephrolepis',
+      location: 'Window',
+      room_id: 1,
+      parent_plant_id: null,
+      watering_interval_days: 7,
+    })
     const mod = await import('./index.put')
 
     await (mod.default as any)({})
 
     const update = poolQuery.mock.calls.find(c => String(c[0]).includes('UPDATE plants'))
     const sql = String(update?.[0])
-    for (const p of ['$1', '$2', '$3', '$4', '$5', '$6'])
+    for (const p of ['$1', '$2', '$3', '$4', '$5', '$6', '$7'])
       expect(sql).toContain(p)
     expect(sql).toContain('WHERE id = $1')
-    expect(update?.[1]).toHaveLength(6)
+    expect(update?.[1]).toHaveLength(7)
+  })
+
+  it('writes only the columns the body carries, so a partial update keeps the rest', async () => {
+    readBody.mockResolvedValue({ id: PLANT_ID, watering_interval_days: 7 })
+    const mod = await import('./index.put')
+
+    await (mod.default as any)({})
+
+    const update = poolQuery.mock.calls.find(c => String(c[0]).includes('UPDATE plants'))
+    const sql = String(update?.[0])
+    expect(sql).toContain('watering_interval_days = $2')
+    expect(sql).not.toContain('name')
+    expect(update?.[1]).toEqual([PLANT_ID, 7])
+  })
+
+  it('clears a column when the body carries an explicit null', async () => {
+    readBody.mockResolvedValue({ id: PLANT_ID, watering_interval_days: null })
+    const mod = await import('./index.put')
+
+    await (mod.default as any)({})
+
+    const update = poolQuery.mock.calls.find(c => String(c[0]).includes('UPDATE plants'))
+    expect(update?.[1]).toEqual([PLANT_ID, null])
   })
 
   it('routes a status change through the helper rather than the update statement', async () => {

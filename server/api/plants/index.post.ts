@@ -24,8 +24,9 @@ export default defineEventHandler(async (event) => {
 
       // 1. Create the plant
       const createPlantQuery = `
-                    INSERT INTO plants (name, species, parent_plant_id, location, room_id)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO plants (name, species, parent_plant_id, location, room_id,
+                                        watering_interval_days)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     RETURNING id;
                 `
       const plantResult = await client.query(createPlantQuery, [
@@ -34,6 +35,9 @@ export default defineEventHandler(async (event) => {
         fields.parentPlant?.[0] || null,
         fields.location[0],
         fields.room[0],
+        // Left null when the field is empty: a plant without an interval is simply
+        // never due, which is the point of the nullable column.
+        fields.wateringIntervalDays?.[0] ? Number(fields.wateringIntervalDays[0]) : null,
       ])
       const plantId = plantResult.rows[0].id
 

@@ -58,6 +58,8 @@
                   <p><span class="font-bold">Last fertilized: </span>{{ lastCareLabel('fertilizing') }}</p>
                   <USeparator />
                   <p><span class="font-bold">Status: </span>{{ statusLabel(plant.data[0].status) }}</p>
+                  <USeparator />
+                  <p><span class="font-bold">Next watering: </span>{{ nextWateringLabel }}</p>
                 </div>
 
                 <!-- CARE LOG. One tap, no modal: anything slower does not get logged. -->
@@ -432,6 +434,15 @@
             />
           </div>
           <div class="flex flex-col gap-1">
+            <BaseLabel text="Watering interval in days" />
+            <UInput
+              v-model.number="plantToEdit.watering_interval_days"
+              type="number"
+              min="1"
+              placeholder="Leave empty if you do not want due dates"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
             <BaseLabel text="Status" />
             <USelect
               v-model="plantToEdit.status"
@@ -705,6 +716,7 @@ const plantToEdit = ref({
   location: plant.value?.data?.[0]?.location,
   room_id: plant.value?.data?.[0]?.room_id,
   status: plant.value?.data?.[0]?.status,
+  watering_interval_days: plant.value?.data?.[0]?.watering_interval_days,
 })
 
 watch(plant, () => {
@@ -716,6 +728,7 @@ watch(plant, () => {
     location: plant.value?.data?.[0]?.location,
     room_id: plant.value?.data?.[0]?.room_id,
     status: plant.value?.data?.[0]?.status,
+    watering_interval_days: plant.value?.data?.[0]?.watering_interval_days,
   }
 })
 
@@ -762,6 +775,18 @@ async function editPlant() {
 function getPhotosAttachedToNote(noteId: string) {
   return plant.value.data[0].photos.filter(photo => photo.note_id === noteId)
 }
+
+// WATERING DUE. The value comes from the server's shared definition, never recomputed
+// here, so the detail page and the due list cannot disagree.
+const nextWateringLabel = computed(() => {
+  const due = (plant.value as any)?.wateringDue
+  if (!due)
+    return 'no interval set'
+  const date = formatDate(due.due_at)
+  if (due.days_overdue > 0)
+    return `${date} (${due.days_overdue} days overdue)`
+  return date
+})
 
 // STATUS
 const PLANT_STATUS_OPTIONS = [

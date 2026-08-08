@@ -68,6 +68,15 @@
         />
       </div>
       <div class="flex flex-col gap-1">
+        <BaseLabel text="Watering interval in days" />
+        <UInput
+          v-model.number="wateringIntervalDays"
+          type="number"
+          min="1"
+          placeholder="Leave empty if you do not want due dates"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
         <BaseLabel text="Photo" />
         <UInput
           type="file"
@@ -106,6 +115,7 @@ const species = ref('')
 const parentPlant = ref('')
 const location = ref('')
 const room = ref('')
+const wateringIntervalDays = ref<number | null>(null)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref('')
 const isSubmitting = ref(false)
@@ -140,6 +150,8 @@ async function addPlant() {
     formData.append('parentPlant', parentPlant.value)
     formData.append('location', location.value)
     formData.append('room', room.value)
+    if (wateringIntervalDays.value)
+      formData.append('wateringIntervalDays', String(wateringIntervalDays.value))
     if (selectedFile.value) {
       formData.append('photo', selectedFile.value)
     }
